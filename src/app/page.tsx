@@ -29,7 +29,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, doc } from 'firebase/firestore';
 
 export default function GirlsStore() {
   const { toast } = useToast();
@@ -41,16 +41,31 @@ export default function GirlsStore() {
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Firestore Collections
-  const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories'), orderBy('name', 'asc')), [db]);
-  const { data: dbCategories, isLoading: isCatsLoading } = useCollection(categoriesQuery);
+  // Firestore Collections - Removed orderBy to avoid index requirement issues
+  const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
+  const { data: dbCategoriesRaw, isLoading: isCatsLoading } = useCollection(categoriesQuery);
 
-  const productsQuery = useMemoFirebase(() => query(collection(db, 'products'), orderBy('createdAt', 'desc')), [db]);
-  const { data: dbProducts, isLoading: isProductsLoading } = useCollection(productsQuery);
+  const productsQuery = useMemoFirebase(() => query(collection(db, 'products')), [db]);
+  const { data: dbProductsRaw, isLoading: isProductsLoading } = useCollection(productsQuery);
+
+  // Sorting categories in memory
+  const dbCategories = useMemo(() => {
+    if (!dbCategoriesRaw) return [];
+    return [...dbCategoriesRaw].sort((a, b) => a.name.localeCompare(b.name));
+  }, [dbCategoriesRaw]);
+
+  // Sorting products in memory (newest first)
+  const dbProducts = useMemo(() => {
+    if (!dbProductsRaw) return [];
+    return [...dbProductsRaw].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [dbProductsRaw]);
 
   const categories = useMemo(() => {
     const base = [{ id: "all", name: "الكل - All" }];
-    if (!dbCategories) return base;
     return [...base, ...dbCategories];
   }, [dbCategories]);
 
@@ -132,7 +147,7 @@ export default function GirlsStore() {
     toast({ title: "LOGGED OUT", description: "Admin session closed." });
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
     const newId = newCategoryName.trim().toLowerCase().replace(/\s+/g, '-');
     if (categories.find(c => c.id === newId)) {
@@ -140,27 +155,35 @@ export default function GirlsStore() {
       return;
     }
     
-    setDocumentNonBlocking(doc(db, 'categories', newId), {
-      id: newId,
-      name: newCategoryName.trim()
-    }, { merge: true });
+    try {
+      await setDocumentNonBlocking(doc(db, 'categories', newId), {
+        id: newId,
+        name: newCategoryName.trim()
+      }, { merge: true });
 
-    setNewCategoryName("");
-    setIsAddCategoryOpen(false);
-    toast({ title: "Section Added", description: "Saved to database." });
+      setNewCategoryName("");
+      setIsAddCategoryOpen(false);
+      toast({ title: "Section Added", description: "Saved to database." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Failed", description: "Check connection or data size." });
+    }
   };
 
-  const handleEditCategory = () => {
+  const handleEditCategory = async () => {
     if (!categoryToEdit || !newCategoryName.trim()) return;
     
-    updateDocumentNonBlocking(doc(db, 'categories', categoryToEdit.id), {
-      name: newCategoryName.trim()
-    });
+    try {
+      await updateDocumentNonBlocking(doc(db, 'categories', categoryToEdit.id), {
+        name: newCategoryName.trim()
+      });
 
-    setNewCategoryName("");
-    setCategoryToEdit(null);
-    setIsEditCategoryOpen(false);
-    toast({ title: "Section Updated", description: "Saved to database." });
+      setNewCategoryName("");
+      setCategoryToEdit(null);
+      setIsEditCategoryOpen(false);
+      toast({ title: "Section Updated", description: "Saved to database." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Update Failed" });
+    }
   };
 
   const openEditCategory = (cat: {id: string, name: string}) => {
@@ -196,28 +219,40 @@ export default function GirlsStore() {
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const addNewService = (newServiceData: MakeupService | Omit<MakeupService, 'id'>) => {
-    addDocumentNonBlocking(collection(db, 'products'), {
-      ...newServiceData,
-      createdAt: new Date().toISOString()
-    });
-    toast({ title: "Product Added", description: "Saved to database." });
+  const addNewService = async (newServiceData: MakeupService | Omit<MakeupService, 'id'>) => {
+    try {
+      await addDocumentNonBlocking(collection(db, 'products'), {
+        ...newServiceData,
+        createdAt: new Date().toISOString()
+      });
+      toast({ title: "Product Added", description: "Saved to database." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Failed", description: "Check image sizes (max 1MB total per item)." });
+    }
   };
 
-  const updateService = (updated: MakeupService) => {
-    updateDocumentNonBlocking(doc(db, 'products', updated.id), {
-      name: updated.name,
-      price: updated.price,
-      description: updated.description,
-      imageUrls: updated.imageUrls,
-      categoryId: updated.categoryId
-    });
-    toast({ title: "Product Updated", description: "Changes saved." });
+  const updateService = async (updated: MakeupService) => {
+    try {
+      await updateDocumentNonBlocking(doc(db, 'products', updated.id), {
+        name: updated.name,
+        price: updated.price,
+        description: updated.description,
+        imageUrls: updated.imageUrls,
+        categoryId: updated.categoryId
+      });
+      toast({ title: "Product Updated", description: "Changes saved." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Update Failed" });
+    }
   };
 
-  const deleteService = (id: string) => {
-    deleteDocumentNonBlocking(doc(db, 'products', id));
-    toast({ title: "Product Deleted", description: "Removed from database." });
+  const deleteService = async (id: string) => {
+    try {
+      await deleteDocumentNonBlocking(doc(db, 'products', id));
+      toast({ title: "Product Deleted", description: "Removed from database." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Delete Failed" });
+    }
   };
 
   const filteredServices = useMemo(() => {
