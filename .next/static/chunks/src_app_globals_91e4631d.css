@@ -808,6 +808,10 @@ h1, h2, h3, h4, h5, h6 {
   height: 100svh;
 }
 
+.h-\[3px\] {
+  height: 3px;
+}
+
 .max-h-96 {
   max-height: 24rem;
 }
@@ -934,6 +938,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .w-full {
   width: 100%;
+}
+
+.w-40 {
+  width: 10rem;
 }
 
 .min-w-0 {
@@ -1835,6 +1843,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .tracking-widest, .tracking-\[0\.1em\] {
   letter-spacing: .1em;
+}
+
+.tracking-normal {
+  letter-spacing: 0;
 }
 
 .text-\[\#d41c73\] {
@@ -3165,6 +3177,10 @@ h1, h2, h3, h4, h5, h6 {
     height: 3px;
   }
 
+  .md\:h-\[4px\] {
+    height: 4px;
+  }
+
   .md\:w-16 {
     width: 4rem;
   }
@@ -3175,6 +3191,10 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:w-7 {
     width: 1.75rem;
+  }
+
+  .md\:w-80 {
+    width: 20rem;
   }
 
   .md\:max-w-\[420px\] {
@@ -3310,6 +3330,10 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:tracking-\[0\.4em\] {
     letter-spacing: .4em;
+  }
+
+  .md\:tracking-\[0\.2em\] {
+    letter-spacing: .2em;
   }
 
   .md\:opacity-0 {

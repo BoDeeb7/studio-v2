@@ -251,19 +251,19 @@ export default function GirlsStore() {
         </div>
 
         <div className="flex flex-col items-end">
-          <p className="text-[10px] md:text-xs font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
+          <p className="text-[12px] md:text-sm font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
-          <div className="h-[1px] md:h-[2px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
+          <div className="h-[2px] md:h-[3px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
         </div>
       </nav>
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
         <div className="w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1">
-          <p className="text-[12px] md:text-[14px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
+          <p className="text-[14px] md:text-[18px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
-          <div className="h-[2px] md:h-[3px] w-32 md:w-64 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
+          <div className="h-[3px] md:h-[4px] w-40 md:w-80 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
         </div>
 
         <div className="flex flex-col items-center mb-6 md:mb-10">
@@ -469,12 +469,12 @@ export default function GirlsStore() {
       )}
 
       <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
-        <p className="text-pink-400 uppercase tracking-[0.4em] font-bold text-[11px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
+        <p className="text-pink-400 uppercase tracking-[0.4em] font-bold text-[12px] md:text-[14px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
         <div className="flex justify-center gap-12 mb-12 text-pink-500">
-          <Instagram size={28} className="hover:scale-110 hover:text-pink-600 transition-all cursor-pointer" onClick={() => window.open('https://www.instagram.com/girls_store_520?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')} />
-          <Zap size={28} />
+          <Instagram size={32} className="hover:scale-110 hover:text-pink-600 transition-all cursor-pointer" onClick={() => window.open('https://www.instagram.com/girls_store_520?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')} />
+          <Zap size={32} />
         </div>
-        <p className="text-[9px] md:text-[13px] uppercase tracking-[0.1em] md:tracking-[0.4em] font-bold text-pink-900 whitespace-nowrap px-4 overflow-hidden">
+        <p className="text-[12px] md:text-[18px] uppercase tracking-normal md:tracking-[0.2em] font-bold text-pink-900 whitespace-nowrap px-4">
           © 2026 GIRLS STORE • BY HASSAN DEEB
         </p>
       </footer>
