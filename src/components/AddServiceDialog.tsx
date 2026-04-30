@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -15,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Camera, Loader2 } from "lucide-react";
+import { Plus, Camera, Loader2, Trash2, X } from "lucide-react";
 import { MakeupService } from './ServiceCard';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -31,7 +30,7 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
   const [name, setName] = useState("");
   const [price, setPrice] = useState("45");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [category, setCategory] = useState("face");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,32 +42,42 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
   }, [isOpen, selectedCategoryId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newImages: string[] = [];
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newImages.push(reader.result as string);
+          if (newImages.length === files.length) {
+            setImageUrls(prev => [...prev, ...newImages]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
+  const removeImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = () => {
-    if (!name || !imageUrl) return;
+    if (!name || imageUrls.length === 0) return;
     setLoading(true);
     
     onAdd({
       name,
       price: Number(price),
       description,
-      imageUrl,
+      imageUrls: imageUrls,
       categoryId: category
     });
     
     setName("");
     setPrice("45");
     setDescription("");
-    setImageUrl("");
+    setImageUrls([]);
     setIsOpen(false);
     setLoading(false);
   };
@@ -87,34 +96,40 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="font-display text-xl uppercase text-pink-700">Add New Product</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            Enter details and upload an image from your device.
+            Enter details and upload one or more images.
           </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="flex-grow overflow-y-auto px-6 py-2">
           <div className="grid gap-4 py-4">
-            {/* Image Upload Area */}
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="aspect-square w-full rounded-3xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group max-w-[280px] mx-auto"
-            >
-              {imageUrl ? (
-                <>
-                  <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Camera className="text-white w-8 h-8" />
+            {/* Multiple Image Upload Area */}
+            <div className="space-y-4">
+              <Label className="text-pink-600 font-bold text-xs uppercase">Product Images</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {imageUrls.map((url, idx) => (
+                  <div key={idx} className="aspect-square relative rounded-xl overflow-hidden border border-pink-100 group">
+                    <img src={url} className="w-full h-full object-cover" />
+                    <button 
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-                </>
-              ) : (
-                <>
-                  <Camera className="text-pink-300 w-10 h-10 mb-2" />
-                  <span className="text-[10px] uppercase font-bold text-pink-400">Upload Photo</span>
-                </>
-              )}
+                ))}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center hover:bg-pink-100/50 transition-colors"
+                >
+                  <Plus className="text-pink-300 w-6 h-6" />
+                  <span className="text-[8px] uppercase font-bold text-pink-400 mt-1">Add</span>
+                </button>
+              </div>
               <input 
                 type="file" 
                 ref={fileInputRef} 
                 className="hidden" 
+                multiple
                 accept="image/*" 
                 onChange={handleFileChange} 
               />
@@ -172,7 +187,7 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
         <DialogFooter className="p-6 pt-2">
           <Button 
             onClick={handleSubmit} 
-            disabled={loading || !name || !imageUrl}
+            disabled={loading || !name || imageUrls.length === 0}
             className="w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]"
           >
             {loading ? <Loader2 className="animate-spin" /> : "Publish Product"}

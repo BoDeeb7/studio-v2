@@ -173,23 +173,62 @@ function ServiceCard(param) {
     const [isEditing, setIsEditing] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [editedService, setEditedService] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(service);
     const [showEffect, setShowEffect] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [currentImageIndex, setCurrentImageIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const fileInputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const images = isEditing ? editedService.imageUrls : service.imageUrls;
+    // Auto-play carousel
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "ServiceCard.useEffect": ()=>{
+            if (images.length <= 1 || isEditing) return;
+            const interval = setInterval({
+                "ServiceCard.useEffect.interval": ()=>{
+                    setCurrentImageIndex({
+                        "ServiceCard.useEffect.interval": (prev)=>(prev + 1) % images.length
+                    }["ServiceCard.useEffect.interval"]);
+                }
+            }["ServiceCard.useEffect.interval"], 3000);
+            return ({
+                "ServiceCard.useEffect": ()=>clearInterval(interval)
+            })["ServiceCard.useEffect"];
+        }
+    }["ServiceCard.useEffect"], [
+        images.length,
+        isEditing
+    ]);
     const handleSave = ()=>{
         onUpdate(editedService);
         setIsEditing(false);
     };
     const handleFileChange = (e)=>{
-        var _e_target_files;
-        const file = (_e_target_files = e.target.files) === null || _e_target_files === void 0 ? void 0 : _e_target_files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = ()=>{
-                setEditedService({
-                    ...editedService,
-                    imageUrl: reader.result
-                });
-            };
-            reader.readAsDataURL(file);
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newImages = [];
+            Array.from(files).forEach((file)=>{
+                const reader = new FileReader();
+                reader.onloadend = ()=>{
+                    newImages.push(reader.result);
+                    if (newImages.length === files.length) {
+                        setEditedService({
+                            ...editedService,
+                            imageUrls: [
+                                ...editedService.imageUrls,
+                                ...newImages
+                            ]
+                        });
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+    const removeImage = (index)=>{
+        const updatedImages = editedService.imageUrls.filter((_, i)=>i !== index);
+        setEditedService({
+            ...editedService,
+            imageUrls: updatedImages
+        });
+        if (currentImageIndex >= updatedImages.length) {
+            setCurrentImageIndex(Math.max(0, updatedImages.length - 1));
         }
     };
     const handleAddToCartWithEffect = ()=>{
@@ -205,53 +244,140 @@ function ServiceCard(param) {
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "aspect-square relative overflow-hidden bg-white/20",
                 children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                        src: isEditing ? editedService.imageUrl : service.imageUrl,
-                        alt: service.name,
-                        fill: true,
-                        className: "object-cover transition-transform duration-700 group-hover:scale-110"
+                    images.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "relative w-full h-full",
+                        children: [
+                            images.map((img, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("absolute inset-0 transition-opacity duration-1000 ease-in-out", idx === currentImageIndex ? "opacity-100" : "opacity-0"),
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                        src: img,
+                                        alt: "".concat(service.name, " - ").concat(idx),
+                                        fill: true,
+                                        className: "object-cover"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/ServiceCard.tsx",
+                                        lineNumber: 98,
+                                        columnNumber: 17
+                                    }, this)
+                                }, idx, false, {
+                                    fileName: "[project]/src/components/ServiceCard.tsx",
+                                    lineNumber: 91,
+                                    columnNumber: 15
+                                }, this)),
+                            images.length > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-20",
+                                children: images.map((_, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("w-1.5 h-1.5 rounded-full transition-all", idx === currentImageIndex ? "bg-pink-500 w-3" : "bg-white/50")
+                                    }, idx, false, {
+                                        fileName: "[project]/src/components/ServiceCard.tsx",
+                                        lineNumber: 111,
+                                        columnNumber: 19
+                                    }, this))
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/ServiceCard.tsx",
+                                lineNumber: 109,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/ServiceCard.tsx",
+                        lineNumber: 89,
+                        columnNumber: 11
+                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "w-full h-full flex items-center justify-center bg-pink-50",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$camera$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Camera$3e$__["Camera"], {
+                            className: "text-pink-200 w-12 h-12"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/ServiceCard.tsx",
+                            lineNumber: 124,
+                            columnNumber: 13
+                        }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/ServiceCard.tsx",
-                        lineNumber: 62,
-                        columnNumber: 9
+                        lineNumber: 123,
+                        columnNumber: 11
                     }, this),
                     isEditing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        onClick: ()=>{
-                            var _fileInputRef_current;
-                            return (_fileInputRef_current = fileInputRef.current) === null || _fileInputRef_current === void 0 ? void 0 : _fileInputRef_current.click();
-                        },
-                        className: "absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer z-10",
+                        className: "absolute inset-0 bg-black/40 flex flex-col items-center justify-center z-30 p-4",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$camera$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Camera$3e$__["Camera"], {
-                                className: "text-white w-8 h-8 md:w-10 md:h-10 mb-2"
-                            }, void 0, false, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                variant: "outline",
+                                size: "sm",
+                                className: "mb-4 rounded-full bg-white/20 text-white border-white/40 hover:bg-white/30",
+                                onClick: ()=>{
+                                    var _fileInputRef_current;
+                                    return (_fileInputRef_current = fileInputRef.current) === null || _fileInputRef_current === void 0 ? void 0 : _fileInputRef_current.click();
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
+                                        className: "w-4 h-4 mr-2"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/ServiceCard.tsx",
+                                        lineNumber: 136,
+                                        columnNumber: 15
+                                    }, this),
+                                    " Add Images"
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                lineNumber: 74,
+                                lineNumber: 130,
                                 columnNumber: 13
                             }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest",
-                                children: "Change Photo"
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex flex-wrap gap-2 justify-center max-h-[150px] overflow-y-auto p-2",
+                                children: editedService.imageUrls.map((img, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "relative w-12 h-12 rounded-lg overflow-hidden border border-white/50",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                src: img,
+                                                className: "w-full h-full object-cover"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/ServiceCard.tsx",
+                                                lineNumber: 142,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>removeImage(idx),
+                                                className: "absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg",
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trash$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Trash2$3e$__["Trash2"], {
+                                                    className: "w-3 h-3"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/ServiceCard.tsx",
+                                                    lineNumber: 147,
+                                                    columnNumber: 21
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/ServiceCard.tsx",
+                                                lineNumber: 143,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, idx, true, {
+                                        fileName: "[project]/src/components/ServiceCard.tsx",
+                                        lineNumber: 141,
+                                        columnNumber: 17
+                                    }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                lineNumber: 75,
+                                lineNumber: 139,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                 type: "file",
                                 ref: fileInputRef,
                                 className: "hidden",
+                                multiple: true,
                                 accept: "image/*",
                                 onChange: handleFileChange
                             }, void 0, false, {
                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                lineNumber: 76,
+                                lineNumber: 153,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/ServiceCard.tsx",
-                        lineNumber: 70,
+                        lineNumber: 129,
                         columnNumber: 11
                     }, this),
                     !isEditing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -262,13 +388,13 @@ function ServiceCard(param) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/ServiceCard.tsx",
-                        lineNumber: 88,
+                        lineNumber: 166,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/ServiceCard.tsx",
-                lineNumber: 61,
+                lineNumber: 87,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -285,7 +411,7 @@ function ServiceCard(param) {
                                 })
                         }, void 0, false, {
                             fileName: "[project]/src/components/ServiceCard.tsx",
-                            lineNumber: 98,
+                            lineNumber: 176,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -296,7 +422,7 @@ function ServiceCard(param) {
                                     children: "$"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 104,
+                                    lineNumber: 182,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -309,13 +435,13 @@ function ServiceCard(param) {
                                         })
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 105,
+                                    lineNumber: 183,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/ServiceCard.tsx",
-                            lineNumber: 103,
+                            lineNumber: 181,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -327,7 +453,7 @@ function ServiceCard(param) {
                                 })
                         }, void 0, false, {
                             fileName: "[project]/src/components/ServiceCard.tsx",
-                            lineNumber: 112,
+                            lineNumber: 190,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -339,7 +465,7 @@ function ServiceCard(param) {
                                     children: "Save"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 118,
+                                    lineNumber: 196,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -349,19 +475,19 @@ function ServiceCard(param) {
                                     children: "Cancel"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 121,
+                                    lineNumber: 199,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/ServiceCard.tsx",
-                            lineNumber: 117,
+                            lineNumber: 195,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/ServiceCard.tsx",
-                    lineNumber: 97,
+                    lineNumber: 175,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "space-y-4 flex flex-col flex-grow",
@@ -374,7 +500,7 @@ function ServiceCard(param) {
                                     children: service.name
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 129,
+                                    lineNumber: 207,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -382,13 +508,13 @@ function ServiceCard(param) {
                                     children: service.description
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 132,
+                                    lineNumber: 210,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/ServiceCard.tsx",
-                            lineNumber: 128,
+                            lineNumber: 206,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -404,7 +530,7 @@ function ServiceCard(param) {
                                                 children: "Thank's"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                                lineNumber: 141,
+                                                lineNumber: 219,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$flower$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Flower2$3e$__["Flower2"], {
@@ -415,7 +541,7 @@ function ServiceCard(param) {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                                lineNumber: 144,
+                                                lineNumber: 222,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$flower$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Flower2$3e$__["Flower2"], {
@@ -426,7 +552,7 @@ function ServiceCard(param) {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                                lineNumber: 145,
+                                                lineNumber: 223,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$flower$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Flower2$3e$__["Flower2"], {
@@ -437,18 +563,18 @@ function ServiceCard(param) {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                                lineNumber: 146,
+                                                lineNumber: 224,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/ServiceCard.tsx",
-                                        lineNumber: 140,
+                                        lineNumber: 218,
                                         columnNumber: 19
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 139,
+                                    lineNumber: 217,
                                     columnNumber: 17
                                 }, this),
                                 !isSupervisor ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -459,14 +585,14 @@ function ServiceCard(param) {
                                             className: "mr-1 w-4 h-4"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/ServiceCard.tsx",
-                                            lineNumber: 159,
+                                            lineNumber: 237,
                                             columnNumber: 19
                                         }, this),
                                         " ADD TO BAG"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 152,
+                                    lineNumber: 230,
                                     columnNumber: 17
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "flex gap-2",
@@ -479,14 +605,14 @@ function ServiceCard(param) {
                                                     className: "w-3 h-3 mr-1"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                                    lineNumber: 167,
+                                                    lineNumber: 245,
                                                     columnNumber: 21
                                                 }, this),
                                                 " Edit"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/ServiceCard.tsx",
-                                            lineNumber: 163,
+                                            lineNumber: 241,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -497,45 +623,45 @@ function ServiceCard(param) {
                                                 className: "w-4 h-4"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/ServiceCard.tsx",
-                                                lineNumber: 174,
+                                                lineNumber: 252,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/ServiceCard.tsx",
-                                            lineNumber: 169,
+                                            lineNumber: 247,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/ServiceCard.tsx",
-                                    lineNumber: 162,
+                                    lineNumber: 240,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/ServiceCard.tsx",
-                            lineNumber: 137,
+                            lineNumber: 215,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/ServiceCard.tsx",
-                    lineNumber: 127,
+                    lineNumber: 205,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/ServiceCard.tsx",
-                lineNumber: 95,
+                lineNumber: 173,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/ServiceCard.tsx",
-        lineNumber: 59,
+        lineNumber: 85,
         columnNumber: 5
     }, this);
 }
-_s(ServiceCard, "/IxS6hGVh2F6geujO0exTcmaYI0=");
+_s(ServiceCard, "1z/rWheMgDPz3J5ZUcAh56hAnL0=");
 _c = ServiceCard;
 var _c;
 __turbopack_context__.k.register(_c, "ServiceCard");
@@ -1102,8 +1228,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$i
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/label.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/textarea.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/plus.js [app-client] (ecmascript) <export default as Plus>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$camera$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Camera$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/camera.js [app-client] (ecmascript) <export default as Camera>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/loader-circle.js [app-client] (ecmascript) <export default as Loader2>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-client] (ecmascript) <export default as X>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/scroll-area.tsx [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
@@ -1124,7 +1250,7 @@ function AddServiceDialog(param) {
     const [name, setName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [price, setPrice] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("45");
     const [description, setDescription] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
-    const [imageUrl, setImageUrl] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
+    const [imageUrls, setImageUrls] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [category, setCategory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("face");
     const fileInputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
@@ -1138,30 +1264,41 @@ function AddServiceDialog(param) {
         selectedCategoryId
     ]);
     const handleFileChange = (e)=>{
-        var _e_target_files;
-        const file = (_e_target_files = e.target.files) === null || _e_target_files === void 0 ? void 0 : _e_target_files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = ()=>{
-                setImageUrl(reader.result);
-            };
-            reader.readAsDataURL(file);
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newImages = [];
+            Array.from(files).forEach((file)=>{
+                const reader = new FileReader();
+                reader.onloadend = ()=>{
+                    newImages.push(reader.result);
+                    if (newImages.length === files.length) {
+                        setImageUrls((prev)=>[
+                                ...prev,
+                                ...newImages
+                            ]);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
         }
     };
+    const removeImage = (index)=>{
+        setImageUrls((prev)=>prev.filter((_, i)=>i !== index));
+    };
     const handleSubmit = ()=>{
-        if (!name || !imageUrl) return;
+        if (!name || imageUrls.length === 0) return;
         setLoading(true);
         onAdd({
             name,
             price: Number(price),
             description,
-            imageUrl,
+            imageUrls: imageUrls,
             categoryId: category
         });
         setName("");
         setPrice("45");
         setDescription("");
-        setImageUrl("");
+        setImageUrls([]);
         setIsOpen(false);
         setLoading(false);
     };
@@ -1179,19 +1316,19 @@ function AddServiceDialog(param) {
                             className: "w-4 h-4 mr-2"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 83,
+                            lineNumber: 92,
                             columnNumber: 11
                         }, this),
                         " Manual Add"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                    lineNumber: 79,
+                    lineNumber: 88,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                lineNumber: 78,
+                lineNumber: 87,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1205,21 +1342,21 @@ function AddServiceDialog(param) {
                                 children: "Add New Product"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 88,
+                                lineNumber: 97,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                 className: "text-pink-500/70 text-[10px] uppercase tracking-widest",
-                                children: "Enter details and upload an image from your device."
+                                children: "Enter details and upload one or more images."
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 89,
+                                lineNumber: 98,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 87,
+                        lineNumber: 96,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -1228,72 +1365,101 @@ function AddServiceDialog(param) {
                             className: "grid gap-4 py-4",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    onClick: ()=>{
-                                        var _fileInputRef_current;
-                                        return (_fileInputRef_current = fileInputRef.current) === null || _fileInputRef_current === void 0 ? void 0 : _fileInputRef_current.click();
-                                    },
-                                    className: "aspect-square w-full rounded-3xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group max-w-[280px] mx-auto",
+                                    className: "space-y-4",
                                     children: [
-                                        imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
+                                            className: "text-pink-600 font-bold text-xs uppercase",
+                                            children: "Product Images"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                            lineNumber: 107,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "grid grid-cols-3 gap-2",
                                             children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                    src: imageUrl,
-                                                    alt: "Preview",
-                                                    className: "w-full h-full object-cover"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 103,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity",
-                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$camera$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Camera$3e$__["Camera"], {
-                                                        className: "text-white w-8 h-8"
-                                                    }, void 0, false, {
+                                                imageUrls.map((url, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "aspect-square relative rounded-xl overflow-hidden border border-pink-100 group",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                                src: url,
+                                                                className: "w-full h-full object-cover"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                                lineNumber: 111,
+                                                                columnNumber: 21
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                onClick: ()=>removeImage(idx),
+                                                                className: "absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {
+                                                                    className: "w-3 h-3"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                                    lineNumber: 116,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                                lineNumber: 112,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        ]
+                                                    }, idx, true, {
                                                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                        lineNumber: 105,
-                                                        columnNumber: 21
-                                                    }, this)
-                                                }, void 0, false, {
+                                                        lineNumber: 110,
+                                                        columnNumber: 19
+                                                    }, this)),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    onClick: ()=>{
+                                                        var _fileInputRef_current;
+                                                        return (_fileInputRef_current = fileInputRef.current) === null || _fileInputRef_current === void 0 ? void 0 : _fileInputRef_current.click();
+                                                    },
+                                                    className: "aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center hover:bg-pink-100/50 transition-colors",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
+                                                            className: "text-pink-300 w-6 h-6"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                            lineNumber: 124,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "text-[8px] uppercase font-bold text-pink-400 mt-1",
+                                                            children: "Add"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                            lineNumber: 125,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 104,
-                                                    columnNumber: 19
+                                                    lineNumber: 120,
+                                                    columnNumber: 17
                                                 }, this)
                                             ]
-                                        }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$camera$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Camera$3e$__["Camera"], {
-                                                    className: "text-pink-300 w-10 h-10 mb-2"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 110,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "text-[10px] uppercase font-bold text-pink-400",
-                                                    children: "Upload Photo"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 111,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true),
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                            lineNumber: 108,
+                                            columnNumber: 15
+                                        }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                             type: "file",
                                             ref: fileInputRef,
                                             className: "hidden",
+                                            multiple: true,
                                             accept: "image/*",
                                             onChange: handleFileChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 114,
+                                            lineNumber: 128,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 97,
+                                    lineNumber: 106,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1305,7 +1471,7 @@ function AddServiceDialog(param) {
                                             children: "Product Name"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 124,
+                                            lineNumber: 139,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1316,13 +1482,13 @@ function AddServiceDialog(param) {
                                             onChange: (e)=>setName(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 125,
+                                            lineNumber: 140,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 123,
+                                    lineNumber: 138,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1337,7 +1503,7 @@ function AddServiceDialog(param) {
                                                     children: "Price ($)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 136,
+                                                    lineNumber: 151,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1348,13 +1514,13 @@ function AddServiceDialog(param) {
                                                     onChange: (e)=>setPrice(e.target.value)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 137,
+                                                    lineNumber: 152,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 135,
+                                            lineNumber: 150,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1365,7 +1531,7 @@ function AddServiceDialog(param) {
                                                     children: "Category"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 146,
+                                                    lineNumber: 161,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1377,24 +1543,24 @@ function AddServiceDialog(param) {
                                                             children: cat.name
                                                         }, cat.id, false, {
                                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                            lineNumber: 153,
+                                                            lineNumber: 168,
                                                             columnNumber: 21
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 147,
+                                                    lineNumber: 162,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 145,
+                                            lineNumber: 160,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 134,
+                                    lineNumber: 149,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1406,7 +1572,7 @@ function AddServiceDialog(param) {
                                             children: "Description"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 160,
+                                            lineNumber: 175,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -1417,63 +1583,63 @@ function AddServiceDialog(param) {
                                             onChange: (e)=>setDescription(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 161,
+                                            lineNumber: 176,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 159,
+                                    lineNumber: 174,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 95,
+                            lineNumber: 104,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 94,
+                        lineNumber: 103,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
                         className: "p-6 pt-2",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                             onClick: handleSubmit,
-                            disabled: loading || !name || !imageUrl,
+                            disabled: loading || !name || imageUrls.length === 0,
                             className: "w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]",
                             children: loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                                 className: "animate-spin"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 178,
+                                lineNumber: 193,
                                 columnNumber: 24
                             }, this) : "Publish Product"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 173,
+                            lineNumber: 188,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 172,
+                        lineNumber: 187,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                lineNumber: 86,
+                lineNumber: 95,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/AddServiceDialog.tsx",
-        lineNumber: 77,
+        lineNumber: 86,
         columnNumber: 5
     }, this);
 }
-_s(AddServiceDialog, "9oycn8eX6r6QToT6agBUlomlHkQ=");
+_s(AddServiceDialog, "vcLGgpk8dU/qcY3yML5HYNIg/Y0=");
 _c = AddServiceDialog;
 var _c;
 __turbopack_context__.k.register(_c, "AddServiceDialog");
@@ -1767,6 +1933,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__PlusCircle$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/circle-plus.js [app-client] (ecmascript) <export default as PlusCircle>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$volume$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Volume2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/volume-2.js [app-client] (ecmascript) <export default as Volume2>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$volume$2d$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__VolumeX$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/volume-x.js [app-client] (ecmascript) <export default as VolumeX>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$pen$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Edit2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/pen.js [app-client] (ecmascript) <export default as Edit2>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/hooks/use-toast.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ServiceCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ServiceCard.tsx [app-client] (ecmascript)");
@@ -1832,6 +1999,8 @@ function GirlsStore() {
         }
     ]);
     const [isAddCategoryOpen, setIsAddCategoryOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isEditCategoryOpen, setIsEditCategoryOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [categoryToEdit, setCategoryToEdit] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [newCategoryName, setNewCategoryName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [cart, setCart] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [isCartOpen, setIsCartOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
@@ -1846,7 +2015,9 @@ function GirlsStore() {
                     name: "Signature Gloss",
                     price: 45,
                     description: "High Shine & Deep Hydration.",
-                    imageUrl: "https://picsum.photos/seed/lips/600/600",
+                    imageUrls: [
+                        "https://picsum.photos/seed/lips/600/600"
+                    ],
                     categoryId: "lips"
                 },
                 {
@@ -1854,7 +2025,9 @@ function GirlsStore() {
                     name: "Velvet Matte",
                     price: 55,
                     description: "Intense pigment with weightless finish.",
-                    imageUrl: "https://picsum.photos/seed/face/600/600",
+                    imageUrls: [
+                        "https://picsum.photos/seed/face/600/600"
+                    ],
                     categoryId: "face"
                 },
                 {
@@ -1862,7 +2035,9 @@ function GirlsStore() {
                     name: "Glow Palette",
                     price: 65,
                     description: "Ultimate summer radiance.",
-                    imageUrl: "https://picsum.photos/seed/cheeks/600/600",
+                    imageUrls: [
+                        "https://picsum.photos/seed/cheeks/600/600"
+                    ],
                     categoryId: "cheeks"
                 }
             ]
@@ -1970,6 +2145,25 @@ function GirlsStore() {
         setNewCategoryName("");
         setIsAddCategoryOpen(false);
     };
+    const handleEditCategory = ()=>{
+        if (!categoryToEdit || !newCategoryName.trim()) return;
+        setCategories(categories.map((c)=>c.id === categoryToEdit.id ? {
+                ...c,
+                name: newCategoryName
+            } : c));
+        setNewCategoryName("");
+        setCategoryToEdit(null);
+        setIsEditCategoryOpen(false);
+        toast({
+            title: "Section Updated",
+            description: "Category name has been changed."
+        });
+    };
+    const openEditCategory = (cat)=>{
+        setCategoryToEdit(cat);
+        setNewCategoryName(cat.name);
+        setIsEditCategoryOpen(true);
+    };
     const addToCart = (service)=>{
         setCart((prev)=>{
             const existing = prev.find((item)=>item.service.id === service.id);
@@ -2050,7 +2244,7 @@ function GirlsStore() {
                 src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 214,
+                lineNumber: 232,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -2067,7 +2261,7 @@ function GirlsStore() {
                                 children: "GIRLS"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 232,
+                                lineNumber: 250,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2078,49 +2272,49 @@ function GirlsStore() {
                                         children: "."
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 233,
+                                        lineNumber: 251,
                                         columnNumber: 22
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 233,
+                                lineNumber: 251,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 228,
+                        lineNumber: 246,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "flex flex-col items-end",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "text-[8px] md:text-xl font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap",
+                                className: "text-[10px] md:text-sm font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap",
                                 children: "POWERED BY HASSAN DEEB"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 237,
+                                lineNumber: 255,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "h-[1px] md:h-[2px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 240,
+                                lineNumber: 258,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 236,
+                        lineNumber: 254,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 221,
+                lineNumber: 239,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
@@ -2130,24 +2324,24 @@ function GirlsStore() {
                         className: "w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "text-[12px] md:text-[50px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap",
+                                className: "text-[14px] md:text-[18px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap",
                                 children: "POWERED BY HASSAN DEEB"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 246,
+                                lineNumber: 264,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "h-[2px] md:h-[3px] w-32 md:w-[500px] bg-gradient-to-r from-transparent via-pink-500 to-transparent"
+                                className: "h-[2px] md:h-[3px] w-32 md:w-64 bg-gradient-to-r from-transparent via-pink-500 to-transparent"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 249,
+                                lineNumber: 267,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 245,
+                        lineNumber: 263,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2161,7 +2355,7 @@ function GirlsStore() {
                                     children: "GIRLS"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/page.tsx",
-                                    lineNumber: 257,
+                                    lineNumber: 275,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2173,46 +2367,66 @@ function GirlsStore() {
                                             children: "."
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/page.tsx",
-                                            lineNumber: 259,
+                                            lineNumber: 277,
                                             columnNumber: 20
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/page.tsx",
-                                    lineNumber: 258,
+                                    lineNumber: 276,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 253,
+                            lineNumber: 271,
                             columnNumber: 12
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 252,
+                        lineNumber: 270,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
                         className: "flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-4",
-                        children: categories.map((cat)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                onClick: ()=>setSelectedCategoryId(cat.id),
-                                className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("whitespace-nowrap px-4 md:px-6 py-2 rounded-full text-[10px] md:text-[11px] uppercase tracking-widest font-semibold transition-all border", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500 shadow-lg" : "bg-white/80 text-pink-400 border-pink-100 hover:bg-pink-50"),
-                                children: cat.name
+                        children: categories.map((cat)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "relative group",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: ()=>setSelectedCategoryId(cat.id),
+                                    className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("whitespace-nowrap px-4 md:px-6 py-2 rounded-full text-[10px] md:text-[11px] uppercase tracking-widest font-semibold transition-all border flex items-center gap-2", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500 shadow-lg" : "bg-white/80 text-pink-400 border-pink-100 hover:bg-pink-50"),
+                                    children: [
+                                        cat.name,
+                                        isSupervisor && cat.id !== "all" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$pen$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Edit2$3e$__["Edit2"], {
+                                            className: "w-3 h-3 text-white/70 hover:text-white",
+                                            onClick: (e)=>{
+                                                e.stopPropagation();
+                                                openEditCategory(cat);
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/page.tsx",
+                                            lineNumber: 296,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/app/page.tsx",
+                                    lineNumber: 285,
+                                    columnNumber: 15
+                                }, this)
                             }, cat.id, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 266,
+                                lineNumber: 284,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 264,
+                        lineNumber: 282,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 244,
+                lineNumber: 262,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -2231,22 +2445,22 @@ function GirlsStore() {
                                         className: "w-4 h-4 mr-2"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 286,
+                                        lineNumber: 314,
                                         columnNumber: 15
                                     }, this),
                                     " Exit"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 285,
+                                lineNumber: 313,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                 className: "font-headline text-lg md:text-xl uppercase font-bold text-pink-700",
-                                children: "Supervisor Active"
+                                children: "Admin Active"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 288,
+                                lineNumber: 316,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2257,12 +2471,14 @@ function GirlsStore() {
                                                 name,
                                                 description: desc,
                                                 price: 45,
-                                                imageUrl: "https://picsum.photos/seed/new/600/600",
+                                                imageUrls: [
+                                                    "https://picsum.photos/seed/new/600/600"
+                                                ],
                                                 categoryId: selectedCategoryId === "all" ? "face" : selectedCategoryId
                                             })
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 290,
+                                        lineNumber: 318,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$AddServiceDialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AddServiceDialog"], {
@@ -2271,7 +2487,7 @@ function GirlsStore() {
                                         selectedCategoryId: selectedCategoryId
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 291,
+                                        lineNumber: 319,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2283,26 +2499,26 @@ function GirlsStore() {
                                                 className: "w-4 h-4 mr-2"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 293,
+                                                lineNumber: 321,
                                                 columnNumber: 17
                                             }, this),
                                             " New Section"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 292,
+                                        lineNumber: 320,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 289,
+                                lineNumber: 317,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 284,
+                        lineNumber: 312,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2315,7 +2531,7 @@ function GirlsStore() {
                                 onAddToCart: ()=>addToCart(service)
                             }, service.id, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 302,
+                                lineNumber: 330,
                                 columnNumber: 15
                             }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "col-span-full text-center py-20 glass rounded-[2rem] md:rounded-[3rem]",
@@ -2324,23 +2540,23 @@ function GirlsStore() {
                                 children: "No items in this category yet."
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 313,
+                                lineNumber: 341,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 312,
+                            lineNumber: 340,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 299,
+                        lineNumber: 327,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 282,
+                lineNumber: 310,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2350,18 +2566,18 @@ function GirlsStore() {
                     className: "w-5 h-5"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 323,
+                    lineNumber: 351,
                     columnNumber: 27
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$volume$2d$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__VolumeX$3e$__["VolumeX"], {
                     className: "w-5 h-5"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 323,
+                    lineNumber: 351,
                     columnNumber: 61
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 319,
+                lineNumber: 347,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -2376,12 +2592,12 @@ function GirlsStore() {
                                 children: "Create New Section"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 329,
+                                lineNumber: 358,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 328,
+                            lineNumber: 357,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2394,12 +2610,12 @@ function GirlsStore() {
                                 onKeyDown: (e)=>e.key === 'Enter' && handleAddCategory()
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 332,
+                                lineNumber: 361,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 331,
+                            lineNumber: 360,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -2410,23 +2626,88 @@ function GirlsStore() {
                                 children: "Add Section"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 341,
+                                lineNumber: 370,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 340,
+                            lineNumber: 369,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 327,
+                    lineNumber: 356,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 326,
+                lineNumber: 355,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
+                open: isEditCategoryOpen,
+                onOpenChange: setIsEditCategoryOpen,
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
+                    className: "sm:max-w-[400px] glass border-pink-200",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogHeader"], {
+                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTitle"], {
+                                className: "font-headline text-xl uppercase text-pink-700",
+                                children: "Rename Section"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/page.tsx",
+                                lineNumber: 381,
+                                columnNumber: 13
+                            }, this)
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/page.tsx",
+                            lineNumber: 380,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "grid gap-4 py-4",
+                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
+                                placeholder: "New Section Name",
+                                className: "bg-white border-pink-100 rounded-2xl",
+                                value: newCategoryName,
+                                onChange: (e)=>setNewCategoryName(e.target.value),
+                                onKeyDown: (e)=>e.key === 'Enter' && handleEditCategory()
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/page.tsx",
+                                lineNumber: 384,
+                                columnNumber: 13
+                            }, this)
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/page.tsx",
+                            lineNumber: 383,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
+                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                onClick: handleEditCategory,
+                                disabled: !newCategoryName.trim(),
+                                className: "w-full rounded-2xl bg-pink-500 uppercase font-bold text-[11px] tracking-widest",
+                                children: "Update Name"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/page.tsx",
+                                lineNumber: 393,
+                                columnNumber: 13
+                            }, this)
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/page.tsx",
+                            lineNumber: 392,
+                            columnNumber: 11
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/src/app/page.tsx",
+                    lineNumber: 379,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/src/app/page.tsx",
+                lineNumber: 378,
                 columnNumber: 7
             }, this),
             !isSupervisor && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sheet"], {
@@ -2444,7 +2725,7 @@ function GirlsStore() {
                                         className: "w-6 h-6 md:w-7 md:h-7"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 353,
+                                        lineNumber: 405,
                                         columnNumber: 17
                                     }, this),
                                     cart.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2452,23 +2733,23 @@ function GirlsStore() {
                                         children: cart.reduce((a, b)=>a + b.quantity, 0)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 355,
+                                        lineNumber: 407,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 352,
+                                lineNumber: 404,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 351,
+                            lineNumber: 403,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 350,
+                        lineNumber: 402,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SheetContent"], {
@@ -2480,12 +2761,12 @@ function GirlsStore() {
                                     children: "Your Bag"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/page.tsx",
-                                    lineNumber: 364,
+                                    lineNumber: 416,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 363,
+                                lineNumber: 415,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -2495,7 +2776,7 @@ function GirlsStore() {
                                     children: "Empty Bag."
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/page.tsx",
-                                    lineNumber: 368,
+                                    lineNumber: 420,
                                     columnNumber: 17
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "space-y-4",
@@ -2505,17 +2786,17 @@ function GirlsStore() {
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "w-12 h-12 rounded-xl overflow-hidden relative",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                        src: item.service.imageUrl,
+                                                        src: item.service.imageUrls[0],
                                                         className: "object-cover w-full h-full",
                                                         alt: ""
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 373,
+                                                        lineNumber: 425,
                                                         columnNumber: 86
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/page.tsx",
-                                                    lineNumber: 373,
+                                                    lineNumber: 425,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2526,7 +2807,7 @@ function GirlsStore() {
                                                             children: item.service.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/page.tsx",
-                                                            lineNumber: 375,
+                                                            lineNumber: 427,
                                                             columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2539,13 +2820,13 @@ function GirlsStore() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/page.tsx",
-                                                            lineNumber: 376,
+                                                            lineNumber: 428,
                                                             columnNumber: 25
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/page.tsx",
-                                                    lineNumber: 374,
+                                                    lineNumber: 426,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2557,28 +2838,28 @@ function GirlsStore() {
                                                         className: "w-4 h-4"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 378,
+                                                        lineNumber: 430,
                                                         columnNumber: 133
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/page.tsx",
-                                                    lineNumber: 378,
+                                                    lineNumber: 430,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, item.service.id, true, {
                                             fileName: "[project]/src/app/page.tsx",
-                                            lineNumber: 372,
+                                            lineNumber: 424,
                                             columnNumber: 21
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/page.tsx",
-                                    lineNumber: 370,
+                                    lineNumber: 422,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 366,
+                                lineNumber: 418,
                                 columnNumber: 13
                             }, this),
                             cart.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2594,14 +2875,14 @@ function GirlsStore() {
                                                         className: "w-3 h-3"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 387,
+                                                        lineNumber: 439,
                                                         columnNumber: 108
                                                     }, this),
                                                     " Full Name"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 387,
+                                                lineNumber: 439,
                                                 columnNumber: 20
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2611,13 +2892,13 @@ function GirlsStore() {
                                                 onChange: (e)=>setCustomerName(e.target.value)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 388,
+                                                lineNumber: 440,
                                                 columnNumber: 20
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 386,
+                                        lineNumber: 438,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2630,14 +2911,14 @@ function GirlsStore() {
                                                         className: "w-3 h-3"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 391,
+                                                        lineNumber: 443,
                                                         columnNumber: 107
                                                     }, this),
                                                     " Payment Method"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 391,
+                                                lineNumber: 443,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$radio$2d$group$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RadioGroup"], {
@@ -2653,7 +2934,7 @@ function GirlsStore() {
                                                                 id: "cash"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 394,
+                                                                lineNumber: 446,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
@@ -2662,13 +2943,13 @@ function GirlsStore() {
                                                                 children: "Cash on Delivery"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 394,
+                                                                lineNumber: 446,
                                                                 columnNumber: 64
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 393,
+                                                        lineNumber: 445,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2679,7 +2960,7 @@ function GirlsStore() {
                                                                 id: "whish"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 397,
+                                                                lineNumber: 449,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
@@ -2688,25 +2969,25 @@ function GirlsStore() {
                                                                 children: "Whish Money"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 397,
+                                                                lineNumber: 449,
                                                                 columnNumber: 66
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 396,
+                                                        lineNumber: 448,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 392,
+                                                lineNumber: 444,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 390,
+                                        lineNumber: 442,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2720,7 +3001,7 @@ function GirlsStore() {
                                                         children: "Total"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 403,
+                                                        lineNumber: 455,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2731,13 +3012,13 @@ function GirlsStore() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 404,
+                                                        lineNumber: 456,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 402,
+                                                lineNumber: 454,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2747,31 +3028,31 @@ function GirlsStore() {
                                                 children: "Send to WhatsApp"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 406,
+                                                lineNumber: 458,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 401,
+                                        lineNumber: 453,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 385,
+                                lineNumber: 437,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 362,
+                        lineNumber: 414,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 349,
+                lineNumber: 401,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
@@ -2782,7 +3063,7 @@ function GirlsStore() {
                         children: "WHISH MONEY / CASH ON DELIVERY"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 415,
+                        lineNumber: 467,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2794,20 +3075,20 @@ function GirlsStore() {
                                 onClick: ()=>window.open('https://www.instagram.com/girls_store_520?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 417,
+                                lineNumber: 469,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$zap$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Zap$3e$__["Zap"], {
                                 size: 28
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 418,
+                                lineNumber: 470,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 416,
+                        lineNumber: 468,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2815,13 +3096,13 @@ function GirlsStore() {
                         children: "© 2026 GIRLS STORE • BY HASSAN DEEB"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 420,
+                        lineNumber: 472,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 414,
+                lineNumber: 466,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -2836,12 +3117,12 @@ function GirlsStore() {
                                 children: "Admin Access"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 426,
+                                lineNumber: 478,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 425,
+                            lineNumber: 477,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2853,7 +3134,7 @@ function GirlsStore() {
                                         className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pink-300"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 430,
+                                        lineNumber: 482,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2865,18 +3146,18 @@ function GirlsStore() {
                                         onKeyDown: (e)=>e.key === 'Enter' && handlePasswordSubmit()
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 431,
+                                        lineNumber: 483,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 429,
+                                lineNumber: 481,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 428,
+                            lineNumber: 480,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -2886,33 +3167,33 @@ function GirlsStore() {
                                 children: "Verify Access"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 441,
+                                lineNumber: 493,
                                 columnNumber: 25
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.tsx",
-                            lineNumber: 441,
+                            lineNumber: 493,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 424,
+                    lineNumber: 476,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 423,
+                lineNumber: 475,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/page.tsx",
-        lineNumber: 213,
+        lineNumber: 231,
         columnNumber: 5
     }, this);
 }
-_s(GirlsStore, "NVDKCYDaryUfkp/ErKI5cf0T+hs=", false, function() {
+_s(GirlsStore, "usxkVV9x8Yqxzzp3HGc5yGU75kU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"]
     ];

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Edit2, Trash2, Plus, Camera, Flower2 } from 'lucide-react';
+import { Edit2, Trash2, Plus, Camera, Flower2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ export interface MakeupService {
   name: string;
   price: number;
   description: string;
-  imageUrl: string;
+  imageUrls: string[]; // Updated to support multiple images
   categoryId?: string;
 }
 
@@ -29,7 +29,19 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
   const [isEditing, setIsEditing] = useState(false);
   const [editedService, setEditedService] = useState(service);
   const [showEffect, setShowEffect] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const images = isEditing ? editedService.imageUrls : service.imageUrls;
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (images.length <= 1 || isEditing) return;
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [images.length, isEditing]);
 
   const handleSave = () => {
     onUpdate(editedService);
@@ -37,13 +49,27 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditedService({ ...editedService, imageUrl: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newImages: string[] = [];
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newImages.push(reader.result as string);
+          if (newImages.length === files.length) {
+            setEditedService({ ...editedService, imageUrls: [...editedService.imageUrls, ...newImages] });
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const updatedImages = editedService.imageUrls.filter((_, i) => i !== index);
+    setEditedService({ ...editedService, imageUrls: updatedImages });
+    if (currentImageIndex >= updatedImages.length) {
+      setCurrentImageIndex(Math.max(0, updatedImages.length - 1));
     }
   };
 
@@ -57,26 +83,78 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
 
   return (
     <div className="glass rounded-[2rem] md:rounded-[3rem] overflow-hidden group relative flex flex-col h-full">
-      {/* Product Image */}
+      {/* Product Image Carousel */}
       <div className="aspect-square relative overflow-hidden bg-white/20">
-        <Image
-          src={isEditing ? editedService.imageUrl : service.imageUrl}
-          alt={service.name}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-        />
+        {images.length > 0 ? (
+          <div className="relative w-full h-full">
+            {images.map((img, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+                  idx === currentImageIndex ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <Image
+                  src={img}
+                  alt={`${service.name} - ${idx}`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ))}
+            
+            {/* Indicators */}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-20">
+                {images.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full transition-all",
+                      idx === currentImageIndex ? "bg-pink-500 w-3" : "bg-white/50"
+                    )}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-pink-50">
+            <Camera className="text-pink-200 w-12 h-12" />
+          </div>
+        )}
         
         {isEditing && (
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer z-10"
-          >
-            <Camera className="text-white w-8 h-8 md:w-10 md:h-10 mb-2" />
-            <span className="text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest">Change Photo</span>
+          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center z-30 p-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mb-4 rounded-full bg-white/20 text-white border-white/40 hover:bg-white/30"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Images
+            </Button>
+            
+            <div className="flex flex-wrap gap-2 justify-center max-h-[150px] overflow-y-auto p-2">
+              {editedService.imageUrls.map((img, idx) => (
+                <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-white/50">
+                  <img src={img} className="w-full h-full object-cover" />
+                  <button 
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
             <input 
               type="file" 
               ref={fileInputRef} 
               className="hidden" 
+              multiple
               accept="image/*" 
               onChange={handleFileChange} 
             />

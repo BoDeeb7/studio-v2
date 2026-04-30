@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Instagram, Zap, Lock, ShoppingBag, LogOut, X, Wallet, User, PlusCircle, Volume2, VolumeX } from 'lucide-react';
+import { Instagram, Zap, Lock, ShoppingBag, LogOut, X, Wallet, User, PlusCircle, Volume2, VolumeX, Edit2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceCard, MakeupService } from '@/components/ServiceCard';
@@ -49,7 +49,10 @@ export default function GirlsStore() {
   ]);
 
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<{id: string, name: string} | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
+  
   const [cart, setCart] = useState<{ service: MakeupService, quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'whish'>('cash');
@@ -63,7 +66,7 @@ export default function GirlsStore() {
       name: "Signature Gloss",
       price: 45,
       description: "High Shine & Deep Hydration.",
-      imageUrl: "https://picsum.photos/seed/lips/600/600",
+      imageUrls: ["https://picsum.photos/seed/lips/600/600"],
       categoryId: "lips"
     },
     {
@@ -71,7 +74,7 @@ export default function GirlsStore() {
       name: "Velvet Matte",
       price: 55,
       description: "Intense pigment with weightless finish.",
-      imageUrl: "https://picsum.photos/seed/face/600/600",
+      imageUrls: ["https://picsum.photos/seed/face/600/600"],
       categoryId: "face"
     },
     {
@@ -79,7 +82,7 @@ export default function GirlsStore() {
       name: "Glow Palette",
       price: 65,
       description: "Ultimate summer radiance.",
-      imageUrl: "https://picsum.photos/seed/cheeks/600/600",
+      imageUrls: ["https://picsum.photos/seed/cheeks/600/600"],
       categoryId: "cheeks"
     }
   ]);
@@ -162,6 +165,21 @@ export default function GirlsStore() {
     setIsAddCategoryOpen(false);
   };
 
+  const handleEditCategory = () => {
+    if (!categoryToEdit || !newCategoryName.trim()) return;
+    setCategories(categories.map(c => c.id === categoryToEdit.id ? { ...c, name: newCategoryName } : c));
+    setNewCategoryName("");
+    setCategoryToEdit(null);
+    setIsEditCategoryOpen(false);
+    toast({ title: "Section Updated", description: "Category name has been changed." });
+  };
+
+  const openEditCategory = (cat: {id: string, name: string}) => {
+    setCategoryToEdit(cat);
+    setNewCategoryName(cat.name);
+    setIsEditCategoryOpen(true);
+  };
+
   const addToCart = (service: MakeupService) => {
     setCart(prev => {
       const existing = prev.find(item => item.service.id === service.id);
@@ -234,7 +252,7 @@ export default function GirlsStore() {
         </div>
 
         <div className="flex flex-col items-end">
-          <p className="text-[8px] md:text-xl font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
+          <p className="text-[10px] md:text-sm font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
           <div className="h-[1px] md:h-[2px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
@@ -243,10 +261,10 @@ export default function GirlsStore() {
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
         <div className="w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1">
-          <p className="text-[12px] md:text-[50px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
+          <p className="text-[14px] md:text-[18px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
-          <div className="h-[2px] md:h-[3px] w-32 md:w-[500px] bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
+          <div className="h-[2px] md:h-[3px] w-32 md:w-64 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
         </div>
 
         <div className="flex flex-col items-center mb-6 md:mb-10">
@@ -263,18 +281,28 @@ export default function GirlsStore() {
 
         <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-4">
           {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategoryId(cat.id)}
-              className={cn(
-                "whitespace-nowrap px-4 md:px-6 py-2 rounded-full text-[10px] md:text-[11px] uppercase tracking-widest font-semibold transition-all border",
-                selectedCategoryId === cat.id
-                  ? "bg-pink-500 text-white border-pink-500 shadow-lg"
-                  : "bg-white/80 text-pink-400 border-pink-100 hover:bg-pink-50"
-              )}
-            >
-              {cat.name}
-            </button>
+            <div key={cat.id} className="relative group">
+              <button
+                onClick={() => setSelectedCategoryId(cat.id)}
+                className={cn(
+                  "whitespace-nowrap px-4 md:px-6 py-2 rounded-full text-[10px] md:text-[11px] uppercase tracking-widest font-semibold transition-all border flex items-center gap-2",
+                  selectedCategoryId === cat.id
+                    ? "bg-pink-500 text-white border-pink-500 shadow-lg"
+                    : "bg-white/80 text-pink-400 border-pink-100 hover:bg-pink-50"
+                )}
+              >
+                {cat.name}
+                {isSupervisor && cat.id !== "all" && (
+                  <Edit2 
+                    className="w-3 h-3 text-white/70 hover:text-white" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditCategory(cat);
+                    }} 
+                  />
+                )}
+              </button>
+            </div>
           ))}
         </nav>
       </header>
@@ -285,9 +313,9 @@ export default function GirlsStore() {
             <Button onClick={handleLogout} variant="ghost" className="absolute top-2 right-2 md:top-4 md:right-4 text-pink-400" size="sm">
               <LogOut className="w-4 h-4 mr-2" /> Exit
             </Button>
-            <h3 className="font-headline text-lg md:text-xl uppercase font-bold text-pink-700">Supervisor Active</h3>
+            <h3 className="font-headline text-lg md:text-xl uppercase font-bold text-pink-700">Admin Active</h3>
             <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-              <AIGeneratorDialog onGenerated={(name, desc) => addNewService({ name, description: desc, price: 45, imageUrl: "https://picsum.photos/seed/new/600/600", categoryId: selectedCategoryId === "all" ? "face" : selectedCategoryId })} />
+              <AIGeneratorDialog onGenerated={(name, desc) => addNewService({ name, description: desc, price: 45, imageUrls: ["https://picsum.photos/seed/new/600/600"], categoryId: selectedCategoryId === "all" ? "face" : selectedCategoryId })} />
               <AddServiceDialog onAdd={addNewService} categories={categories} selectedCategoryId={selectedCategoryId} />
               <Button onClick={() => setIsAddCategoryOpen(true)} variant="outline" className="rounded-full bg-white text-[9px] md:text-[10px] uppercase tracking-widest h-10 px-4 md:px-6 text-pink-700 border-pink-100">
                 <PlusCircle className="w-4 h-4 mr-2" /> New Section
@@ -323,6 +351,7 @@ export default function GirlsStore() {
         {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
       </Button>
 
+      {/* New Category Dialog */}
       <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
         <DialogContent className="sm:max-w-[400px] glass border-pink-200">
           <DialogHeader>
@@ -340,6 +369,29 @@ export default function GirlsStore() {
           <DialogFooter>
             <Button onClick={handleAddCategory} disabled={!newCategoryName.trim()} className="w-full rounded-2xl bg-pink-500 uppercase font-bold text-[11px] tracking-widest">
               Add Section
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+        <DialogContent className="sm:max-w-[400px] glass border-pink-200">
+          <DialogHeader>
+            <DialogTitle className="font-headline text-xl uppercase text-pink-700">Rename Section</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              placeholder="New Section Name"
+              className="bg-white border-pink-100 rounded-2xl"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleEditCategory()}
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={handleEditCategory} disabled={!newCategoryName.trim()} className="w-full rounded-2xl bg-pink-500 uppercase font-bold text-[11px] tracking-widest">
+              Update Name
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -370,7 +422,7 @@ export default function GirlsStore() {
                 <div className="space-y-4">
                   {cart.map((item) => (
                     <div key={item.service.id} className="flex gap-4 items-center bg-white/60 p-3 rounded-2xl border border-pink-100">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden relative"><img src={item.service.imageUrl} className="object-cover w-full h-full" alt="" /></div>
+                      <div className="w-12 h-12 rounded-xl overflow-hidden relative"><img src={item.service.imageUrls[0]} className="object-cover w-full h-full" alt="" /></div>
                       <div className="flex-grow">
                         <h4 className="font-bold text-pink-900 text-xs">{item.service.name}</h4>
                         <p className="text-pink-500 font-bold text-[10px]">${item.service.price} x {item.quantity}</p>
