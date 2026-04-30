@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, doc } from 'firebase/firestore';
+import { collection, query, doc, serverTimestamp } from 'firebase/firestore';
 
 export default function GirlsStore() {
   const { toast } = useToast();
@@ -57,9 +57,10 @@ export default function GirlsStore() {
   const dbProducts = useMemo(() => {
     if (!dbProductsRaw) return [];
     return [...dbProductsRaw].sort((a, b) => {
-      const dateA = new Date(a.createdAt || 0).getTime();
-      const dateB = new Date(b.createdAt || 0).getTime();
-      return dateB - dateA;
+      // Use seconds if it's a Firestore Timestamp, otherwise try parsing as date
+      const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : new Date(a.createdAt || 0).getTime();
+      const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : new Date(b.createdAt || 0).getTime();
+      return timeB - timeA;
     });
   }, [dbProductsRaw]);
 
@@ -222,13 +223,14 @@ export default function GirlsStore() {
     try {
       await addDocumentNonBlocking(collection(db, 'products'), {
         ...newServiceData,
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       });
-      toast({ title: "Product Published", description: "Available for everyone now." });
+      toast({ title: "Product Published", description: "Saved and synced globally." });
     } catch (e: any) {
+      console.error("Firebase Add Error:", e);
       let desc = "Check your connection.";
       if (e.code === 'invalid-argument' || (e.message && e.message.includes('too large'))) {
-        desc = "Images are too large. Max 1MB total. Try uploading fewer or smaller photos.";
+        desc = "Images are too large! Max 1MB total. Try uploading only 1 or 2 small photos.";
       }
       toast({ variant: "destructive", title: "Save Failed", description: desc });
     }
@@ -243,7 +245,7 @@ export default function GirlsStore() {
         imageUrls: updated.imageUrls,
         categoryId: updated.categoryId
       });
-      toast({ title: "Product Updated", description: "Changes saved." });
+      toast({ title: "Product Updated", description: "Changes saved to database." });
     } catch (e: any) {
       let desc = "Update failed.";
       if (e.message && e.message.includes('too large')) {

@@ -14,9 +14,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Camera, Loader2, Trash2, X } from "lucide-react";
+import { Plus, Camera, Loader2, Trash2, X, AlertTriangle } from "lucide-react";
 import { MakeupService } from './ServiceCard';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AddServiceDialogProps {
   onAdd: (service: Omit<MakeupService, 'id'>) => void;
@@ -32,6 +33,7 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
   const [description, setDescription] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [category, setCategory] = useState("face");
+  const [sizeWarning, setSizeWarning] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,11 +43,24 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
     }
   }, [isOpen, selectedCategoryId]);
 
+  // Check total size of Base64 strings
+  useEffect(() => {
+    const totalSize = imageUrls.reduce((acc, img) => acc + img.length, 0);
+    // 1MB is approx 1,000,000 chars in Base64
+    setSizeWarning(totalSize > 850000);
+  }, [imageUrls]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const newImages: string[] = [];
       Array.from(files).forEach(file => {
+        // Warning: Very large files (> 500KB each) will cause issues
+        if (file.size > 800000) {
+          alert("Image is too large! Please use a smaller photo or a screenshot to reduce size.");
+          return;
+        }
+
         const reader = new FileReader();
         reader.onloadend = () => {
           newImages.push(reader.result as string);
@@ -62,24 +77,29 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
     setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name || imageUrls.length === 0) return;
     setLoading(true);
     
-    onAdd({
-      name,
-      price: Number(price),
-      description,
-      imageUrls: imageUrls,
-      categoryId: category
-    });
-    
-    setName("");
-    setPrice("45");
-    setDescription("");
-    setImageUrls([]);
-    setIsOpen(false);
-    setLoading(false);
+    try {
+      await onAdd({
+        name,
+        price: Number(price),
+        description,
+        imageUrls: imageUrls,
+        categoryId: category
+      });
+      
+      setName("");
+      setPrice("45");
+      setDescription("");
+      setImageUrls([]);
+      setIsOpen(false);
+    } catch (e) {
+      console.error("Submit error", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,12 +116,21 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="font-display text-xl uppercase text-pink-700">Add New Product</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            Enter details and upload one or more images.
+            Enter details and upload small images.
           </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="flex-grow overflow-y-auto px-6 py-2">
           <div className="grid gap-4 py-4">
+            {sizeWarning && (
+              <Alert variant="destructive" className="bg-red-50 border-red-200 py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-[10px] font-bold">
+                  Warning: Too many images or files too large! Firestore limit is 1MB. Try removing some photos.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Multiple Image Upload Area */}
             <div className="space-y-4">
               <Label className="text-pink-600 font-bold text-xs uppercase">Product Images</Label>
