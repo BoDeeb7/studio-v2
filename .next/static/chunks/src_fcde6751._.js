@@ -923,7 +923,6 @@ function useCollection(memoizedTargetRefOrQuery) {
             }
             setIsLoading(true);
             setError(null);
-            // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
             const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["onSnapshot"])(memoizedTargetRefOrQuery, {
                 "useCollection.useEffect.unsubscribe": (snapshot)=>{
                     const results = [];
@@ -939,7 +938,6 @@ function useCollection(memoizedTargetRefOrQuery) {
                 }
             }["useCollection.useEffect.unsubscribe"], {
                 "useCollection.useEffect.unsubscribe": (error)=>{
-                    // This logic extracts the path from either a ref or a query
                     const path = memoizedTargetRefOrQuery.type === 'collection' ? memoizedTargetRefOrQuery.path : memoizedTargetRefOrQuery._query.path.canonicalString();
                     const contextualError = new __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$errors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FirestorePermissionError"]({
                         operation: 'list',
@@ -948,7 +946,6 @@ function useCollection(memoizedTargetRefOrQuery) {
                     setError(contextualError);
                     setData(null);
                     setIsLoading(false);
-                    // trigger global error propagation
                     __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$error$2d$emitter$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["errorEmitter"].emit('permission-error', contextualError);
                 }
             }["useCollection.useEffect.unsubscribe"]);
@@ -958,10 +955,7 @@ function useCollection(memoizedTargetRefOrQuery) {
         }
     }["useCollection.useEffect"], [
         memoizedTargetRefOrQuery
-    ]); // Re-run if the target query/reference changes.
-    if (memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-        throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
-    }
+    ]);
     return {
         data,
         isLoading,

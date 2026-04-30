@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Edit2, Trash2, Plus, Camera, Flower2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit2, Trash2, Plus, Camera, Flower2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ export interface MakeupService {
   name: string;
   price: number;
   description: string;
-  imageUrls: string[]; // Updated to support multiple images
+  imageUrls: string[]; 
   categoryId?: string;
 }
 
@@ -32,16 +32,16 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const images = isEditing ? editedService.imageUrls : service.imageUrls;
+  const images = isEditing ? (editedService.imageUrls || []) : (service.imageUrls || []);
 
   // Auto-play carousel
   useEffect(() => {
-    if (images.length <= 1 || isEditing) return;
+    if (!images || images.length <= 1 || isEditing) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [images.length, isEditing]);
+  }, [images?.length, isEditing]);
 
   const handleSave = () => {
     onUpdate(editedService);
@@ -57,7 +57,7 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
         reader.onloadend = () => {
           newImages.push(reader.result as string);
           if (newImages.length === files.length) {
-            setEditedService({ ...editedService, imageUrls: [...editedService.imageUrls, ...newImages] });
+            setEditedService({ ...editedService, imageUrls: [...(editedService.imageUrls || []), ...newImages] });
           }
         };
         reader.readAsDataURL(file);
@@ -66,7 +66,7 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
   };
 
   const removeImage = (index: number) => {
-    const updatedImages = editedService.imageUrls.filter((_, i) => i !== index);
+    const updatedImages = (editedService.imageUrls || []).filter((_, i) => i !== index);
     setEditedService({ ...editedService, imageUrls: updatedImages });
     if (currentImageIndex >= updatedImages.length) {
       setCurrentImageIndex(Math.max(0, updatedImages.length - 1));
@@ -85,7 +85,7 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
     <div className="glass rounded-[2rem] md:rounded-[3rem] overflow-hidden group relative flex flex-col h-full">
       {/* Product Image Carousel */}
       <div className="aspect-square relative overflow-hidden bg-white/20">
-        {images.length > 0 ? (
+        {images && images.length > 0 ? (
           <div className="relative w-full h-full">
             {images.map((img, idx) => (
               <div
@@ -97,9 +97,10 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
               >
                 <Image
                   src={img}
-                  alt={`${service.name} - ${idx}`}
+                  alt={`${service.name || 'Product'} - ${idx}`}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               </div>
             ))}
@@ -137,7 +138,7 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
             </Button>
             
             <div className="flex flex-wrap gap-2 justify-center max-h-[150px] overflow-y-auto p-2">
-              {editedService.imageUrls.map((img, idx) => (
+              {(editedService.imageUrls || []).map((img, idx) => (
                 <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-white/50">
                   <img src={img} className="w-full h-full object-cover" />
                   <button 
@@ -164,7 +165,7 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
         {/* Price Badge */}
         {!isEditing && (
           <div className="absolute top-3 right-3 md:top-6 md:right-6 bg-white text-pink-500 px-3 py-1 md:px-5 md:py-2 rounded-full font-display font-black text-sm md:text-xl shadow-md z-20">
-            ${service.price}
+            ${service.price || 0}
           </div>
         )}
       </div>
@@ -205,10 +206,10 @@ export function ServiceCard({ service, isSupervisor, onUpdate, onDelete, onAddTo
           <div className="space-y-4 flex flex-col flex-grow">
             <div className="flex-grow">
               <h2 className="text-base md:text-2xl font-display font-black uppercase text-pink-600 leading-tight line-clamp-2">
-                {service.name}
+                {service.name || 'Product'}
               </h2>
               <p className="text-pink-400/80 font-body text-[10px] md:text-sm mt-1 line-clamp-2">
-                {service.description}
+                {service.description || ''}
               </p>
             </div>
 

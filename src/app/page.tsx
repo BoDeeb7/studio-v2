@@ -50,7 +50,7 @@ export default function GirlsStore() {
   // Sorting categories in memory
   const dbCategories = useMemo(() => {
     if (!dbCategoriesRaw) return [];
-    return [...dbCategoriesRaw].sort((a, b) => a.name.localeCompare(b.name));
+    return [...dbCategoriesRaw].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [dbCategoriesRaw]);
 
   // Sorting products in memory (newest first)
@@ -164,7 +164,7 @@ export default function GirlsStore() {
       setIsAddCategoryOpen(false);
       toast({ title: "Section Added", description: "Saved to database." });
     } catch (e) {
-      toast({ variant: "destructive", title: "Save Failed", description: "Check connection or data size." });
+      toast({ variant: "destructive", title: "Save Failed" });
     }
   };
 
@@ -206,14 +206,14 @@ export default function GirlsStore() {
     setCart(prev => prev.filter(item => item.service.id !== id));
   };
 
-  const cartTotal = useMemo(() => cart.reduce((total, item) => total + (item.service.price * item.quantity), 0), [cart]);
+  const cartTotal = useMemo(() => cart.reduce((total, item) => total + ((item.service.price || 0) * item.quantity), 0), [cart]);
 
   const sendOrderWhatsApp = () => {
     if (!customerName.trim()) return;
     const phoneNumber = "96176511272";
     const paymentStr = paymentMethod === 'whish' ? "Whish Money (+96176511272)" : "Cash on Delivery";
     let message = `*طلب جديد من Girls Store*\n\n*الاسم:* ${customerName}\n--------------------------\n`;
-    cart.forEach(item => { message += `- ${item.service.name} (x${item.quantity}) = $${item.service.price * item.quantity}\n`; });
+    cart.forEach(item => { message += `- ${item.service.name} (x${item.quantity}) = $${(item.service.price || 0) * item.quantity}\n`; });
     message += `--------------------------\n*المجموع الكلي: $${cartTotal}*\n*طريقة الدفع:* ${paymentStr}\n\n*Hassan Deeb @ Deeb Data*`;
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
@@ -226,7 +226,6 @@ export default function GirlsStore() {
       });
       toast({ title: "Product Published", description: "Available for everyone now." });
     } catch (e: any) {
-      console.error("Firestore Error:", e);
       let desc = "Check your connection.";
       if (e.code === 'invalid-argument' || (e.message && e.message.includes('too large'))) {
         desc = "Images are too large. Max 1MB total. Try uploading fewer or smaller photos.";
@@ -294,7 +293,7 @@ export default function GirlsStore() {
         </div>
 
         <div className="flex flex-col items-end">
-          <p className="text-[14px] md:text-[24px] font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
+          <p className="text-[12px] md:text-[20px] font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
           <div className="h-[2px] md:h-[4px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
@@ -303,7 +302,7 @@ export default function GirlsStore() {
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
         <div className="w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1">
-          <p className="text-[16px] md:text-[32px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
+          <p className="text-[14px] md:text-[28px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
           <div className="h-[3px] md:h-[6px] w-40 md:w-full max-w-xl bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
@@ -470,10 +469,16 @@ export default function GirlsStore() {
                 <div className="space-y-4">
                   {cart.map((item) => (
                     <div key={item.service.id} className="flex gap-4 items-center bg-white/60 p-3 rounded-2xl border border-pink-100">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden relative"><img src={item.service.imageUrls[0]} className="object-cover w-full h-full" alt="" /></div>
+                      <div className="w-12 h-12 rounded-xl overflow-hidden relative">
+                        {item.service.imageUrls && item.service.imageUrls.length > 0 ? (
+                          <img src={item.service.imageUrls[0]} className="object-cover w-full h-full" alt="" />
+                        ) : (
+                          <div className="w-full h-full bg-pink-50 flex items-center justify-center"><Zap className="w-4 h-4 text-pink-200" /></div>
+                        )}
+                      </div>
                       <div className="flex-grow">
                         <h4 className="font-bold text-pink-900 text-xs">{item.service.name}</h4>
-                        <p className="text-pink-500 font-bold text-[10px]">${item.service.price} x {item.quantity}</p>
+                        <p className="text-pink-500 font-bold text-[10px]">${item.service.price || 0} x {item.quantity}</p>
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.service.id)} className="text-pink-200"><X className="w-4 h-4" /></Button>
                     </div>
@@ -511,15 +516,17 @@ export default function GirlsStore() {
         </Sheet>
       )}
 
-      <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
-        <p className="text-pink-400 uppercase tracking-[0.4em] font-bold text-[12px] md:text-[18px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
-        <div className="flex justify-center gap-12 mb-12 text-pink-500">
-          <Instagram size={32} className="hover:scale-110 hover:text-pink-600 transition-all cursor-pointer" onClick={() => window.open('https://www.instagram.com/girls_store_520?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')} />
-          <Zap size={32} />
+      <footer className="py-12 md:py-20 text-center border-t border-pink-100 bg-white/30">
+        <p className="text-pink-400 uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold text-[12px] md:text-[18px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
+        <div className="flex justify-center gap-8 md:gap-12 mb-8 md:mb-12 text-pink-500">
+          <Instagram size={28} className="hover:scale-110 hover:text-pink-600 transition-all cursor-pointer" onClick={() => window.open('https://www.instagram.com/girls_store_520?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')} />
+          <Zap size={28} />
         </div>
-        <p className="text-[12px] md:text-[18px] uppercase tracking-normal font-black text-pink-900 whitespace-nowrap px-4 text-center">
-          © 2026 GIRLS STORE • BY HASSAN DEEB
-        </p>
+        <div className="px-4">
+          <p className="text-[12px] md:text-[18px] uppercase tracking-normal font-black text-pink-900 whitespace-nowrap overflow-hidden">
+            © 2026 GIRLS STORE • BY HASSAN DEEB
+          </p>
+        </div>
       </footer>
 
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
