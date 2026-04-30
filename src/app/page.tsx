@@ -474,7 +474,9 @@ export default function GirlsStore() {
           <Instagram size={28} className="hover:scale-110 hover:text-pink-600 transition-all cursor-pointer" onClick={() => window.open('https://www.instagram.com/girls_store_520?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')} />
           <Zap size={28} />
         </div>
-        <p className="text-[13px] uppercase tracking-[0.4em] font-bold text-pink-900">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
+        <p className="text-[9px] md:text-[13px] uppercase tracking-[0.1em] md:tracking-[0.4em] font-bold text-pink-900 whitespace-nowrap px-4 overflow-hidden">
+          © 2026 GIRLS STORE • BY HASSAN DEEB
+        </p>
       </footer>
 
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>

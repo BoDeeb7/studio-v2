@@ -1833,7 +1833,7 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -.05em;
 }
 
-.tracking-widest {
+.tracking-widest, .tracking-\[0\.1em\] {
   letter-spacing: .1em;
 }
 
@@ -3302,6 +3302,14 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:text-\[14px\] {
     font-size: 14px;
+  }
+
+  .md\:text-\[13px\] {
+    font-size: 13px;
+  }
+
+  .md\:tracking-\[0\.4em\] {
+    letter-spacing: .4em;
   }
 
   .md\:opacity-0 {
