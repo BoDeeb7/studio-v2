@@ -980,6 +980,10 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 32rem;
 }
 
+.max-w-xl {
+  max-width: 36rem;
+}
+
 .flex-1 {
   flex: 1;
 }
@@ -1774,6 +1778,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-\[12px\] {
   font-size: 12px;
+}
+
+.text-\[16px\] {
+  font-size: 16px;
 }
 
 .font-black {
@@ -3181,6 +3189,10 @@ h1, h2, h3, h4, h5, h6 {
     height: 4px;
   }
 
+  .md\:h-\[6px\] {
+    height: 6px;
+  }
+
   .md\:w-16 {
     width: 4rem;
   }
@@ -3195,6 +3207,10 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:w-80 {
     width: 20rem;
+  }
+
+  .md\:w-full {
+    width: 100%;
   }
 
   .md\:max-w-\[420px\] {
@@ -3326,6 +3342,23 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:text-\[13px\] {
     font-size: 13px;
+  }
+
+  .md\:text-\[22px\] {
+    font-size: 22px;
+  }
+
+  .md\:text-\[24px\] {
+    font-size: 24px;
+  }
+
+  .md\:text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .md\:text-\[32px\] {
+    font-size: 32px;
   }
 
   .md\:tracking-\[0\.4em\] {

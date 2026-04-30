@@ -2237,7 +2237,7 @@ function GirlsStore() {
                 ref: audioRef,
                 loop: true,
                 preload: "auto",
-                src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+                src: "https://cdn.pixabay.com/audio/2021/11/25/audio_91b32e02f9.mp3"
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
                 lineNumber: 231,
@@ -2287,7 +2287,7 @@ function GirlsStore() {
                         className: "flex flex-col items-end",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "text-[12px] md:text-sm font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap",
+                                className: "text-[14px] md:text-[24px] font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap",
                                 children: "POWERED BY HASSAN DEEB"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
@@ -2295,7 +2295,7 @@ function GirlsStore() {
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "h-[2px] md:h-[3px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent"
+                                className: "h-[2px] md:h-[4px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
                                 lineNumber: 257,
@@ -2320,7 +2320,7 @@ function GirlsStore() {
                         className: "w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "text-[14px] md:text-[18px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap",
+                                className: "text-[16px] md:text-[32px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap",
                                 children: "POWERED BY HASSAN DEEB"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
@@ -2328,7 +2328,7 @@ function GirlsStore() {
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "h-[3px] md:h-[4px] w-40 md:w-80 bg-gradient-to-r from-transparent via-pink-500 to-transparent"
+                                className: "h-[3px] md:h-[6px] w-40 md:w-full max-w-xl bg-gradient-to-r from-transparent via-pink-500 to-transparent"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
                                 lineNumber: 266,
@@ -3068,7 +3068,7 @@ function GirlsStore() {
                 className: "py-20 text-center border-t border-pink-100 bg-white/30",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-pink-400 uppercase tracking-[0.4em] font-bold text-[12px] md:text-[14px] mb-8",
+                        className: "text-pink-400 uppercase tracking-[0.4em] font-bold text-[12px] md:text-[18px] mb-8",
                         children: "WHISH MONEY / CASH ON DELIVERY"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
@@ -3101,7 +3101,7 @@ function GirlsStore() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-[12px] md:text-[18px] uppercase tracking-normal md:tracking-[0.2em] font-bold text-pink-900 whitespace-nowrap px-4",
+                        className: "text-[12px] md:text-[18px] uppercase tracking-normal font-black text-pink-900 whitespace-nowrap px-4 text-center",
                         children: "© 2026 GIRLS STORE • BY HASSAN DEEB"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
