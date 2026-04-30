@@ -1764,6 +1764,10 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1rem;
 }
 
+.text-\[12px\] {
+  font-size: 12px;
+}
+
 .font-black {
   font-weight: 900;
 }
@@ -3294,6 +3298,10 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:text-\[16px\] {
     font-size: 16px;
+  }
+
+  .md\:text-\[14px\] {
+    font-size: 14px;
   }
 
   .md\:opacity-0 {

@@ -260,7 +260,7 @@ export default function GirlsStore() {
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
         <div className="w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1">
-          <p className="text-[14px] md:text-[16px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
+          <p className="text-[12px] md:text-[14px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
           <div className="h-[2px] md:h-[3px] w-32 md:w-64 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />

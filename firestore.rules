@@ -4,50 +4,39 @@ service cloud.firestore {
 
     /**
      * CORE PHILOSOPHY
-     * This ruleset implements a Database Access Control (DBAC) model tailored for a makeup artist's portfolio.
-     * It prioritizes high availability for public content while strictly restricting management capabilities 
-     * to verified administrative accounts.
+     * تم تعديل القواعد للسماح لـ Hassan Deeb Studio بإدارة المنتجات والأقسام مباشرة.
+     * في مرحلة الإنتاج، يفضل تقييد الكتابة للمسؤولين فقط عبر Firebase Auth.
      */
 
     // --- Helper Functions ---
-
-    /** @description Checks if the request is from an authenticated user. */
     function isSignedIn() {
       return request.auth != null;
-    }
-
-    /** @description Checks if the authenticated user has an entry in the adminRoles collection. */
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/adminRoles/$(request.auth.uid));
     }
 
     // --- Collection Rules ---
 
     /**
-     * @description Registry of administrative users.
+     * @description Product Categories (الأقسام).
+     * متاح للجميع حالياً لضمان عمل لوحة التحكم.
+     */
+    match /categories/{categoryId} {
+      allow read, write: if true;
+    }
+
+    /**
+     * @description Products/Services (المنتجات).
+     * متاح للجميع حالياً لضمان عمل لوحة التحكم.
+     */
+    match /products/{productId} {
+      allow read, write: if true;
+    }
+
+    /**
+     * @description Admin Roles.
      */
     match /adminRoles/{adminUid} {
       allow get: if isSignedIn() && request.auth.uid == adminUid;
-      allow list: if false;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Product Categories (e.g., Face, Lips).
-     * Publicly viewable by everyone. Writable only by admins.
-     */
-    match /categories/{categoryId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Products/Services.
-     * Publicly viewable by everyone. Writable only by admins.
-     */
-    match /products/{productId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow list, write: if false;
     }
 
   }
