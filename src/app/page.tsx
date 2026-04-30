@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -41,7 +40,7 @@ export default function GirlsStore() {
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Firestore Collections - Removed orderBy to avoid index requirement issues
+  // Firestore Collections - Listen in real-time
   const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
   const { data: dbCategoriesRaw, isLoading: isCatsLoading } = useCollection(categoriesQuery);
 
@@ -225,9 +224,14 @@ export default function GirlsStore() {
         ...newServiceData,
         createdAt: new Date().toISOString()
       });
-      toast({ title: "Product Added", description: "Saved to database." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Save Failed", description: "Check image sizes (max 1MB total per item)." });
+      toast({ title: "Product Published", description: "Available for everyone now." });
+    } catch (e: any) {
+      console.error("Firestore Error:", e);
+      let desc = "Check your connection.";
+      if (e.code === 'invalid-argument' || (e.message && e.message.includes('too large'))) {
+        desc = "Images are too large. Max 1MB total. Try uploading fewer or smaller photos.";
+      }
+      toast({ variant: "destructive", title: "Save Failed", description: desc });
     }
   };
 
@@ -241,8 +245,12 @@ export default function GirlsStore() {
         categoryId: updated.categoryId
       });
       toast({ title: "Product Updated", description: "Changes saved." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Update Failed" });
+    } catch (e: any) {
+      let desc = "Update failed.";
+      if (e.message && e.message.includes('too large')) {
+        desc = "Total data size exceeded 1MB. Please reduce image sizes.";
+      }
+      toast({ variant: "destructive", title: "Update Failed", description: desc });
     }
   };
 
