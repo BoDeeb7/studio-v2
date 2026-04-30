@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE PHILOSOPHY
+     * This ruleset implements a Database Access Control (DBAC) model tailored for a makeup artist's portfolio.
+     * It prioritizes high availability for public content while strictly restricting management capabilities 
+     * to verified administrative accounts.
+     *
+     * DATA STRUCTURE
+     * - /services/{serviceId}: A flat collection of makeup service offerings, publicly viewable.
+     * - /adminRoles/{adminUid}: A dedicated collection defining user permissions. The existence of a UID 
+     *   here grants full administrative write access to the portfolio.
+     *
+     * KEY SECURITY DECISIONS
+     * - Public Read Access: Portfolio services are open for 'get' and 'list' to all visitors (including anonymous).
+     * - Role-Based Writes: All write operations (create, update, delete) are gated by an `exists()` check 
+     *   against the /adminRoles collection.
+     * - Administrative Privacy: The list of administrative users is not publicly queryable to prevent 
+     *   enumeration of privileged accounts.
+     * - Prototyping Flexibility: Rules focus on authorization and relational integrity (ID consistency) 
+     *   rather than strict schema validation to allow for rapid service detail iterations.
+     */
+
+    // --- Helper Functions ---
+
+    /** @description Checks if the request is from an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the authenticated user has an entry in the adminRoles collection. */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/adminRoles/$(request.auth.uid));
+    }
+
+    /** @description Validates that a document exists and the user has administrative privileges. */
+    function isExistingAdmin() {
+      return isAdmin() && resource != null;
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Controls access to the registry of administrative users.
+     * @path /adminRoles/{adminUid}
+     * @allow (get) If the user is checking their own administrative status.
+     * @deny (list) Prevent public listing of all administrative accounts.
+     * @principle Restricts access to sensitive role-based data while allowing self-verification.
+     */
+    match /adminRoles/{adminUid} {
+      allow get: if isSignedIn() && request.auth.uid == adminUid;
+      allow list: if false;
+      allow create, update, delete: if false; // Roles should be managed via Admin SDK or Console for security.
+    }
+
+    /**
+     * @description Manages the makeup services portfolio (Bridal, Luxury, etc.).
+     * @path /services/{serviceId}
+     * @allow (get, list) For all users to browse the service catalog.
+     * @allow (create) For authenticated admins, ensuring the internal ID matches the document path.
+     * @deny (update, delete) For any non-admin user or if the document does not exist.
+     * @principle Implements public read-only access with role-based write authorization.
+     */
+    match /services/{serviceId} {
+      // Public Read Access
+      allow get, list: if true;
+
+      // Administrative Write Access
+      allow create: if isAdmin() 
+                    && request.resource.data.id == serviceId;
+      
+      allow update: if isExistingAdmin() 
+                    && request.resource.data.id == resource.data.id; // Enforce immutable ID
+      
+      allow delete: if isExistingAdmin();
+    }
+
+  }
+}
