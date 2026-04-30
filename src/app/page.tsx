@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -19,19 +20,20 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-}
- from "@/components/ui/sheet";
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 
 export default function GirlsStore() {
   const { toast } = useToast();
+  const db = useFirestore();
   const [isSupervisor, setIsSupervisor] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
@@ -39,14 +41,18 @@ export default function GirlsStore() {
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const [categories, setCategories] = useState([
-    { id: "all", name: "الكل - All" },
-    { id: "face", name: "الوجه - Face" },
-    { id: "eyes", name: "العيون - Eyes" },
-    { id: "lips", name: "الشفاه - Lips" },
-    { id: "cheeks", name: "الخدود والإضاءة - Cheeks" },
-    { id: "tools", name: "الأدوات - Tools" }
-  ]);
+  // Firestore Collections
+  const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories'), orderBy('name', 'asc')), [db]);
+  const { data: dbCategories, isLoading: isCatsLoading } = useCollection(categoriesQuery);
+
+  const productsQuery = useMemoFirebase(() => query(collection(db, 'products'), orderBy('createdAt', 'desc')), [db]);
+  const { data: dbProducts, isLoading: isProductsLoading } = useCollection(productsQuery);
+
+  const categories = useMemo(() => {
+    const base = [{ id: "all", name: "الكل - All" }];
+    if (!dbCategories) return base;
+    return [...base, ...dbCategories];
+  }, [dbCategories]);
 
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
@@ -59,33 +65,6 @@ export default function GirlsStore() {
   const [customerName, setCustomerName] = useState("");
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
-
-  const [services, setServices] = useState<MakeupService[]>(() => [
-    {
-      id: '1',
-      name: "Signature Gloss",
-      price: 45,
-      description: "High Shine & Deep Hydration.",
-      imageUrls: ["https://picsum.photos/seed/lips/600/600"],
-      categoryId: "lips"
-    },
-    {
-      id: '2',
-      name: "Velvet Matte",
-      price: 55,
-      description: "Intense pigment with weightless finish.",
-      imageUrls: ["https://picsum.photos/seed/face/600/600"],
-      categoryId: "face"
-    },
-    {
-      id: '3',
-      name: "Glow Palette",
-      price: 65,
-      description: "Ultimate summer radiance.",
-      imageUrls: ["https://picsum.photos/seed/cheeks/600/600"],
-      categoryId: "cheeks"
-    }
-  ]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -160,18 +139,28 @@ export default function GirlsStore() {
       toast({ variant: "destructive", title: "Category Exists" });
       return;
     }
-    setCategories([...categories, { id: newId, name: newCategoryName }]);
+    
+    setDocumentNonBlocking(doc(db, 'categories', newId), {
+      id: newId,
+      name: newCategoryName.trim()
+    }, { merge: true });
+
     setNewCategoryName("");
     setIsAddCategoryOpen(false);
+    toast({ title: "Section Added", description: "Saved to database." });
   };
 
   const handleEditCategory = () => {
     if (!categoryToEdit || !newCategoryName.trim()) return;
-    setCategories(categories.map(c => c.id === categoryToEdit.id ? { ...c, name: newCategoryName } : c));
+    
+    updateDocumentNonBlocking(doc(db, 'categories', categoryToEdit.id), {
+      name: newCategoryName.trim()
+    });
+
     setNewCategoryName("");
     setCategoryToEdit(null);
     setIsEditCategoryOpen(false);
-    toast({ title: "Section Updated", description: "Category name has been changed." });
+    toast({ title: "Section Updated", description: "Saved to database." });
   };
 
   const openEditCategory = (cat: {id: string, name: string}) => {
@@ -208,24 +197,34 @@ export default function GirlsStore() {
   };
 
   const addNewService = (newServiceData: MakeupService | Omit<MakeupService, 'id'>) => {
-    const newService: MakeupService = 'id' in newServiceData
-      ? newServiceData
-      : { id: Date.now().toString(), ...newServiceData };
-    setServices([newService, ...services]);
+    addDocumentNonBlocking(collection(db, 'products'), {
+      ...newServiceData,
+      createdAt: new Date().toISOString()
+    });
+    toast({ title: "Product Added", description: "Saved to database." });
   };
 
   const updateService = (updated: MakeupService) => {
-    setServices(services.map(s => s.id === updated.id ? updated : s));
+    updateDocumentNonBlocking(doc(db, 'products', updated.id), {
+      name: updated.name,
+      price: updated.price,
+      description: updated.description,
+      imageUrls: updated.imageUrls,
+      categoryId: updated.categoryId
+    });
+    toast({ title: "Product Updated", description: "Changes saved." });
   };
 
   const deleteService = (id: string) => {
-    setServices(services.filter(s => s.id !== id));
+    deleteDocumentNonBlocking(doc(db, 'products', id));
+    toast({ title: "Product Deleted", description: "Removed from database." });
   };
 
   const filteredServices = useMemo(() => {
-    if (selectedCategoryId === "all") return services;
-    return services.filter(s => s.categoryId === selectedCategoryId);
-  }, [services, selectedCategoryId]);
+    if (!dbProducts) return [];
+    if (selectedCategoryId === "all") return dbProducts as MakeupService[];
+    return (dbProducts as MakeupService[]).filter(s => s.categoryId === selectedCategoryId);
+  }, [dbProducts, selectedCategoryId]);
 
   return (
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
@@ -252,7 +251,7 @@ export default function GirlsStore() {
         </div>
 
         <div className="flex flex-col items-end">
-          <p className="text-[10px] md:text-sm font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
+          <p className="text-[10px] md:text-xs font-black uppercase animate-shimmer-rays leading-none tracking-widest whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
           <div className="h-[1px] md:h-[2px] w-full mt-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
@@ -261,7 +260,7 @@ export default function GirlsStore() {
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
         <div className="w-full mb-8 md:mb-12 flex flex-col justify-center items-center gap-1">
-          <p className="text-[14px] md:text-[18px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
+          <p className="text-[14px] md:text-[16px] tracking-[0.05em] font-black uppercase animate-shimmer-rays leading-tight whitespace-nowrap">
             POWERED BY HASSAN DEEB
           </p>
           <div className="h-[2px] md:h-[3px] w-32 md:w-64 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
@@ -324,24 +323,30 @@ export default function GirlsStore() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-10">
-          {filteredServices.length > 0 ? (
-            filteredServices.map(service => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                isSupervisor={isSupervisor}
-                onUpdate={updateService}
-                onDelete={deleteService}
-                onAddToCart={() => addToCart(service)}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-20 glass rounded-[2rem] md:rounded-[3rem]">
-              <p className="text-pink-300 uppercase tracking-widest text-[10px] md:text-xs font-bold">No items in this category yet.</p>
-            </div>
-          )}
-        </div>
+        {(isCatsLoading || isProductsLoading) ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-10">
+            {filteredServices.length > 0 ? (
+              filteredServices.map(service => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  isSupervisor={isSupervisor}
+                  onUpdate={updateService}
+                  onDelete={deleteService}
+                  onAddToCart={() => addToCart(service)}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-20 glass rounded-[2rem] md:rounded-[3rem]">
+                <p className="text-pink-300 uppercase tracking-widest text-[10px] md:text-xs font-bold">No items in this category yet.</p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       <Button

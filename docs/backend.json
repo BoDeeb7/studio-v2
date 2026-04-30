@@ -1,83 +1,46 @@
+
 {
   "entities": {
-    "Service": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Service",
+    "Product": {
+      "title": "Product",
+      "description": "Represents a makeup product in the store.",
       "type": "object",
-      "description": "Represents a makeup service offered by the artist, including its details, pricing, and an associated image.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Service entity."
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "imageUrls": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "name": {
-          "type": "string",
-          "description": "The name or title of the makeup service, e.g., 'Luxury Bridal'."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed explanation of what the makeup service entails, including its features and benefits."
-        },
-        "price": {
-          "type": "number",
-          "description": "The cost of the makeup service, specified as a numerical value (e.g., in USD)."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "The URL or path to the primary image associated with the makeup service, showcasing the look.",
-          "format": "uri"
-        }
+        "categoryId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "price",
-        "imageUrl"
-      ]
+      "required": ["name", "price", "categoryId", "imageUrls"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Represents a product category (e.g., Face, Lips).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["id", "name"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["anonymous"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/services/{serviceId}",
-        "definition": {
-          "entityName": "Service",
-          "schema": {
-            "$ref": "#/backend/entities/Service"
-          },
-          "description": "Stores individual makeup service listings. These documents are publicly readable for displaying the service portfolio to customers and are writable/manageable only by administrators.",
-          "params": [
-            {
-              "name": "serviceId",
-              "description": "Unique identifier for a specific makeup service."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/adminRoles/{adminUid}",
-        "definition": {
-          "entityName": "adminRole",
-          "schema": {
-            "$ref": "#/backend/entities/adminRole"
-          },
-          "description": "A collection used for Database Access Control (DBAC) to define users who possess administrative privileges. The mere existence of a document with the user's UID as its ID signifies an administrator. Rules for other collections (like /services) will check the existence of a document here to grant write access. Includes denormalized 'uid' field for clarity, though its presence is the primary indicator of role.",
-          "params": [
-            {
-              "name": "adminUid",
-              "description": "The Firebase Authentication UID of the user who has administrator privileges."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and Database Access Control (DBAC) to ensure security, scalability, and debuggability. The primary entity, 'Service', is stored in a top-level collection, '/services', making it easily accessible for public display and simple to manage by the administrator.\n\n**Authorization Independence:**\n1.  **For Services (Public Reads):** Each 'Service' document at `/services/{serviceId}` is self-contained with all necessary data (name, description, price, imageUrl). Public read access to these documents is granted directly to the collection, eliminating any need for `get()` calls to parent documents or external authorization checks for display purposes. This ensures that any user, authenticated or not, can view the services without complex rule evaluations or dependencies.\n2.  **For Services (Admin Writes):** Administrative write operations (create, update, delete) on `/services/{serviceId}` are authorized by checking a dedicated global 'adminRole' collection. Security rules will perform an independent `get()` or `exists()` check on `/adminRoles/$(request.auth.uid)` to verify if the requesting user holds the 'admin' role. This design prevents hierarchical authorization dependencies within the 'services' collection itself, making rules atomic and easier to debug, as the authorization logic resides separately.\n\n**Structural Segregation & QAPs (Queryable Access Patterns):**\n1.  **`/services/{serviceId}`:** This collection adheres to Structural Segregation because all documents within it ('Service' entities) share a homogeneous security posture: publicly readable by anyone and writable only by an administrator. This clarity directly supports QAPs. Clients can perform `list` operations (queries) on `/services` securely and efficiently, as all returned documents are intended for public display. The security rules will permit broad `read` access and tightly controlled `write` access based on the separate admin role check.\n2.  **`/adminRoles/{adminUid}`:** This collection is dedicated solely to defining administrator roles. Its segregation ensures that role data is distinct from application data. Access to this collection is highly restricted, typically limited to the admin themselves for profile management (if any) or to `get()` checks within security rules. `list` operations are generally not allowed or needed for this collection, ensuring that administrative roles are not exposed via queries to regular users. The existence of a document for a specific `uid` in this collection implicitly grants administrative privileges, fulfilling the DBAC mandate."
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Store for makeup products."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Store for product categories."
+    }
   }
 }
