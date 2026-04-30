@@ -1,0 +1,22 @@
+{
+  "placeholderImages": [
+    {
+      "id": "lips",
+      "description": "Signature Gloss product",
+      "imageUrl": "https://picsum.photos/seed/lips/800/800",
+      "imageHint": "lipstick gloss"
+    },
+    {
+      "id": "face",
+      "description": "Velvet Matte foundation",
+      "imageUrl": "https://picsum.photos/seed/face/800/800",
+      "imageHint": "makeup foundation"
+    },
+    {
+      "id": "cheeks",
+      "description": "Glow Palette highlighter",
+      "imageUrl": "https://picsum.photos/seed/cheeks/800/800",
+      "imageHint": "makeup highlighter"
+    }
+  ]
+}

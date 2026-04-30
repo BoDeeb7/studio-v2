@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light !important;
+    --background: 0 0% 100%;
+    --foreground: 320 40% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 320 80% 50%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 320 80% 50%;
+    --primary: 327 85% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 327 50% 95%;
+    --secondary-foreground: 327 50% 25%;
+    --muted: 327 20% 95%;
+    --muted-foreground: 327 20% 45%;
+    --accent: 327 100% 85%;
+    --accent-foreground: 327 50% 25%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 327 30% 90%;
+    --input: 327 30% 90%;
+    --ring: 327 85% 65%;
+    --radius: 2.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply text-foreground font-body antialiased;
+    background-color: #ffffff !important;
+    background-image: linear-gradient(135deg, #fff5f8 0%, #fef2f2 100%) !important;
+    background-attachment: fixed;
+    color: #3d142d !important;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline tracking-tight;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Montserrat', sans-serif;
+  }
+  .font-headline {
+    font-family: 'Bodoni Moda', serif;
+  }
+  .font-body {
+    font-family: 'Poppins', sans-serif;
+  }
+  .glass {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(219, 39, 119, 0.1);
+  }
+
+  @keyframes flower-pop {
+    0% { transform: translateY(0) scale(0) rotate(0) translateX(0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-150px) scale(2) rotate(90deg) translateX(var(--x-offset, 20px)); opacity: 0; }
+  }
+  
+  @keyframes thanks-bounce {
+    0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+    40% { transform: translate(-50%, -60px) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -100px) scale(1.3); opacity: 0; }
+  }
+
+  @keyframes shimmer-rays {
+    0% { background-position: -200% center; text-shadow: 0 0 8px rgba(219, 39, 119, 0.2); }
+    50% { text-shadow: 0 0 15px rgba(147, 51, 234, 0.4); }
+    100% { background-position: 200% center; text-shadow: 0 0 8px rgba(219, 39, 119, 0.2); }
+  }
+
+  .animate-shimmer-rays {
+    background: linear-gradient(90deg, #db2777, #f472b6, #ec4899, #f472b6, #db2777);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer-rays 3s ease-in-out infinite;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

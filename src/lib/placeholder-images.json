@@ -1,0 +1,28 @@
+{
+  "placeholderImages": [
+    {
+      "id": "makeup-bridal",
+      "description": "Professional bridal makeup application",
+      "imageUrl": "https://picsum.photos/seed/bridal/800/600",
+      "imageHint": "bridal makeup"
+    },
+    {
+      "id": "makeup-glam",
+      "description": "Soft glam makeup for evening events",
+      "imageUrl": "https://picsum.photos/seed/glam/800/600",
+      "imageHint": "glam makeup"
+    },
+    {
+      "id": "makeup-editorial",
+      "description": "Bold artistic makeup look",
+      "imageUrl": "https://picsum.photos/seed/editorial/800/600",
+      "imageHint": "artistic makeup"
+    },
+    {
+      "id": "makeup-natural",
+      "description": "Everyday natural glow look",
+      "imageUrl": "https://picsum.photos/seed/natural/800/600",
+      "imageHint": "natural makeup"
+    }
+  ]
+}
