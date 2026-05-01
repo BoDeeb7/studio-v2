@@ -33,20 +33,33 @@ import { collection, query, doc, serverTimestamp } from 'firebase/firestore';
 export default function GirlsStore() {
   const { toast } = useToast();
   const db = useFirestore();
+  
+  // 1. All State Hooks must be at the very top
   const [mounted, setMounted] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<{id: string, name: string} | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [cart, setCart] = useState<{ service: MakeupService, quantity: number }[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'whish'>('cash');
+  const [customerName, setCustomerName] = useState("");
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Hydration Protection
+  // 2. Hydration protection
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Real-time Queries
+  // 3. Real-time Queries & Memos
   const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
   const { data: dbCategoriesRaw, isLoading: isCatsLoading } = useCollection(categoriesQuery);
 
@@ -61,8 +74,8 @@ export default function GirlsStore() {
   const dbProducts = useMemo(() => {
     if (!dbProductsRaw) return [];
     return [...dbProductsRaw].sort((a: any, b: any) => {
-      const timeA = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
-      const timeB = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+      const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || 0;
+      const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || 0;
       return timeB - timeA;
     });
   }, [dbProductsRaw]);
@@ -72,25 +85,29 @@ export default function GirlsStore() {
     return [...base, ...dbCategories];
   }, [dbCategories]);
 
-  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
-  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<{id: string, name: string} | null>(null);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  
-  const [cart, setCart] = useState<{ service: MakeupService, quantity: number }[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'whish'>('cash');
-  const [customerName, setCustomerName] = useState("");
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
+  const filteredServices = useMemo(() => {
+    if (!dbProducts) return [];
+    if (selectedCategoryId === "all") return dbProducts as MakeupService[];
+    return (dbProducts as MakeupService[]).filter(s => s.categoryId === selectedCategoryId);
+  }, [dbProducts, selectedCategoryId]);
 
+  const cartTotal = cart.reduce((total, item) => total + ((item.service.price || 0) * item.quantity), 0);
+
+  // 4. Effects
   useEffect(() => {
-    if (!mounted) return;
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [mounted]);
+  }, []);
 
+  useEffect(() => {
+    if (clickCount === 7) {
+      setIsPasswordDialogOpen(true);
+      setClickCount(0);
+    }
+  }, [clickCount]);
+
+  // 5. Action Handlers
   const toggleMusic = () => {
     if (!audioRef.current) return;
     if (audioRef.current.paused) {
@@ -105,15 +122,6 @@ export default function GirlsStore() {
     if (isSupervisor) return;
     setClickCount(prev => prev + 1);
   };
-
-  useEffect(() => {
-    if (clickCount === 7) {
-      setIsPasswordDialogOpen(true);
-      setClickCount(0);
-    }
-  }, [clickCount]);
-
-  if (!mounted) return null; // Prevent hydration crash
 
   const handlePasswordSubmit = () => {
     if (passwordInput === "Hassan@GS#7") {
@@ -136,16 +144,6 @@ export default function GirlsStore() {
     } catch (e) {}
   };
 
-  const handleEditCategory = async () => {
-    if (!categoryToEdit || !newCategoryName.trim()) return;
-    try {
-      await updateDocumentNonBlocking(doc(db, 'categories', categoryToEdit.id), { name: newCategoryName.trim() });
-      setNewCategoryName("");
-      setCategoryToEdit(null);
-      setIsEditCategoryOpen(false);
-    } catch (e) {}
-  };
-
   const addToCart = (service: MakeupService) => {
     setCart(prev => {
       const existing = prev.find(item => item.service.id === service.id);
@@ -155,17 +153,13 @@ export default function GirlsStore() {
     toast({ title: "Added to Bag", description: service.name });
   };
 
-  const cartTotal = cart.reduce((total, item) => total + ((item.service.price || 0) * item.quantity), 0);
-
-  const filteredServices = useMemo(() => {
-    if (!dbProducts) return [];
-    if (selectedCategoryId === "all") return dbProducts as MakeupService[];
-    return (dbProducts as MakeupService[]).filter(s => s.categoryId === selectedCategoryId);
-  }, [dbProducts, selectedCategoryId]);
+  // 6. Early return after all hooks are defined
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
-      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2021/11/25/audio_91b32e02f9.mp3" />
+      {/* Elegant Piano Music */}
+      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2022/01/21/audio_73144d1840.mp3" />
 
       {/* Persistent Nav */}
       <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-28 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
@@ -173,11 +167,11 @@ export default function GirlsStore() {
           <span>GIRLS</span>
           <span>STORE<span className="text-[#f472b6]">.</span></span>
         </div>
-        <p className="text-[12px] md:text-[20px] font-black uppercase animate-shimmer-rays tracking-widest">POWERED BY HASSAN DEEB</p>
+        <p className="text-[14px] md:text-[24px] font-black uppercase animate-shimmer-rays tracking-widest">POWERED BY HASSAN DEEB</p>
       </nav>
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
-        <p className="text-[14px] md:text-[28px] font-black uppercase animate-shimmer-rays mb-4">POWERED BY HASSAN DEEB</p>
+        <p className="text-[18px] md:text-[32px] font-black uppercase animate-shimmer-rays mb-4">POWERED BY HASSAN DEEB</p>
         <h1 onClick={handleAdminTrigger} className="font-display text-[60px] md:text-[140px] font-black leading-[0.85] text-[#d41c73] cursor-pointer">
           <span className="block">GIRLS</span>
           <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
@@ -209,7 +203,14 @@ export default function GirlsStore() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-10">
             {filteredServices.map(service => (
-              <ServiceCard key={service.id} service={service} isSupervisor={isSupervisor} onUpdate={(u) => updateDocumentNonBlocking(doc(db, 'products', u.id), u)} onDelete={(id) => deleteDocumentNonBlocking(doc(db, 'products', id))} onAddToCart={() => addToCart(service)} />
+              <ServiceCard 
+                key={service.id} 
+                service={service} 
+                isSupervisor={isSupervisor} 
+                onUpdate={(u) => updateDocumentNonBlocking(doc(db, 'products', u.id), u)} 
+                onDelete={(id) => deleteDocumentNonBlocking(doc(db, 'products', id))} 
+                onAddToCart={() => addToCart(service)} 
+              />
             ))}
           </div>
         )}
@@ -219,17 +220,99 @@ export default function GirlsStore() {
         {isMusicPlaying ? <Volume2 /> : <VolumeX />}
       </Button>
 
+      {/* Enhanced Bag Sheet */}
+      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <SheetTrigger asChild>
+          <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full bg-pink-500 text-white shadow-2xl z-50 hover:bg-pink-600 transition-transform active:scale-95">
+            <div className="relative">
+              <ShoppingBag className="w-8 h-8" />
+              {cart.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-white text-pink-500 text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-pink-500">
+                  {cart.reduce((a, b) => a + b.quantity, 0)}
+                </span>
+              )}
+            </div>
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="glass border-pink-100 w-full sm:max-w-md p-0 flex flex-col">
+          <SheetHeader className="p-6 border-b border-pink-100">
+            <SheetTitle className="font-display text-2xl text-pink-600 uppercase">Your Bag</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="flex-grow p-6">
+            {cart.length === 0 ? (
+              <div className="text-center py-20">
+                <ShoppingBag className="w-16 h-16 text-pink-100 mx-auto mb-4" />
+                <p className="text-pink-300 uppercase text-xs font-bold">Your bag is empty</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {cart.map((item, idx) => (
+                  <div key={idx} className="flex gap-4 items-center animate-in fade-in slide-in-from-right-4">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-pink-50 border border-pink-100 relative">
+                      <img src={item.service.imageUrls[0]} className="w-full h-full object-cover" alt="" />
+                    </div>
+                    <div className="flex-grow">
+                      <h4 className="font-display text-sm text-pink-900 uppercase font-black">{item.service.name}</h4>
+                      <p className="text-pink-500 font-bold text-xs">${item.service.price} × {item.quantity}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setCart(prev => prev.filter((_, i) => i !== idx))} className="text-pink-200 hover:text-red-400">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+          {cart.length > 0 && (
+            <div className="p-6 bg-white/80 border-t border-pink-100 space-y-4">
+              <div className="flex justify-between items-end">
+                <span className="text-pink-400 text-xs font-bold uppercase">Total Amount</span>
+                <span className="text-pink-600 font-display text-3xl font-black">${cartTotal}</span>
+              </div>
+              <Button className="w-full h-14 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-xs">
+                Checkout Now
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
       <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
-        <p className="text-pink-400 uppercase tracking-widest font-bold text-[12px] md:text-[18px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
-        <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
+        <p className="text-pink-400 uppercase tracking-widest font-bold text-[14px] md:text-[22px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
+        <p className="text-[14px] md:text-[22px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
       </footer>
 
-      {/* Admin Dialogs */}
+      {/* Admin Auth Dialog */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
         <DialogContent className="glass border-pink-200">
           <DialogHeader><DialogTitle>Admin Access</DialogTitle></DialogHeader>
-          <Input type="password" placeholder="••••••••" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()} />
-          <Button onClick={handlePasswordSubmit} className="bg-pink-500">Verify</Button>
+          <div className="space-y-4 py-4">
+            <Input 
+              type="password" 
+              placeholder="••••••••" 
+              value={passwordInput} 
+              onChange={(e) => setPasswordInput(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()} 
+              className="rounded-xl border-pink-100"
+            />
+            <Button onClick={handlePasswordSubmit} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold">Verify Access</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Category Dialog */}
+      <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
+        <DialogContent className="glass border-pink-200">
+          <DialogHeader><DialogTitle>New Section</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input 
+              placeholder="Section Name (e.g. Face, Lips...)" 
+              value={newCategoryName} 
+              onChange={(e) => setNewCategoryName(e.target.value)} 
+              className="rounded-xl border-pink-100"
+            />
+            <Button onClick={handleAddCategory} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold">Create Section</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
