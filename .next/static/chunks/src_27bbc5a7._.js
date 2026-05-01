@@ -1298,12 +1298,16 @@ function AddServiceDialog(param) {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "AddServiceDialog.useEffect": ()=>{
             if (isOpen) {
-                setCategory(selectedCategoryId === "all" ? "face" : selectedCategoryId);
+                var _categories_find;
+                setCategory(selectedCategoryId === "all" ? ((_categories_find = categories.find({
+                    "AddServiceDialog.useEffect": (c)=>c.id !== 'all'
+                }["AddServiceDialog.useEffect"])) === null || _categories_find === void 0 ? void 0 : _categories_find.id) || "face" : selectedCategoryId);
             }
         }
     }["AddServiceDialog.useEffect"], [
         isOpen,
-        selectedCategoryId
+        selectedCategoryId,
+        categories
     ]);
     const handleFileChange = (e)=>{
         const files = e.target.files;
@@ -1329,45 +1333,54 @@ function AddServiceDialog(param) {
         });
     };
     const handleSubmit = async ()=>{
-        if (!name || tempImages.length === 0) return;
+        if (!name || tempImages.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "Missing Data",
+                description: "Please add a name and at least one image."
+            });
+            return;
+        }
         setLoading(true);
         try {
             const uploadedUrls = [];
-            // Atomic Sequence: Storage Upload First
+            // Phase 1: Upload Files to Storage (Atomic)
             for(let i = 0; i < tempImages.length; i++){
-                const item1 = tempImages[i];
-                const storageRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ref"])(storage, "products/".concat(Date.now(), "_").concat(i, "_").concat(item1.file.name));
-                // Upload bytes (Never base64)
-                const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["uploadBytes"])(storageRef, item1.file);
+                const item = tempImages[i];
+                const storagePath = "products/".concat(Date.now(), "_").concat(i, "_").concat(item.file.name.replace(/[^a-zA-Z0-9.]/g, '_'));
+                const storageRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ref"])(storage, storagePath);
+                // Upload binary (Never Base64)
+                const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["uploadBytes"])(storageRef, item.file);
                 const downloadUrl = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDownloadURL"])(snapshot.ref);
                 uploadedUrls.push(downloadUrl);
             }
-            // Firestore Second: Save permanent links
-            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["addDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(firestore, 'products'), {
+            // Phase 2: Save metadata to Firestore only after all uploads succeed
+            const productData = {
                 name: name.trim(),
                 price: Number(price),
                 description: description.trim(),
                 imageUrls: uploadedUrls,
                 categoryId: category,
-                createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
-            });
+                createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])() // Official Firebase time
+            };
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["addDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(firestore, 'products'), productData);
             toast({
-                title: "Product Published",
-                description: "Successfully saved to cloud storage."
+                title: "Published Successfully",
+                description: "".concat(name, " is now live for all customers.")
             });
-            // Cleanup
+            // Cleanup & Close
             setName("");
             setPrice("45");
             setDescription("");
-            tempImages.forEach((img)=>URL.revokeObjectURL(item.preview));
+            tempImages.forEach((img)=>URL.revokeObjectURL(img.preview));
             setTempImages([]);
             setIsOpen(false);
         } catch (e) {
-            console.error("CRITICAL UPLOAD ERROR:", e);
+            console.error("CRITICAL PERSISTENCE ERROR:", e);
             toast({
                 variant: "destructive",
-                title: "Publishing Failed",
-                description: e.message || "Connection error. Please try again."
+                title: "Save Failed",
+                description: "Firestore rejected the data. Check permissions or image sizes."
             });
         } finally{
             setLoading(false);
@@ -1387,19 +1400,19 @@ function AddServiceDialog(param) {
                             className: "w-4 h-4 mr-2"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 123,
+                            lineNumber: 129,
                             columnNumber: 11
                         }, this),
                         " Manual Add"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                    lineNumber: 122,
+                    lineNumber: 128,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                lineNumber: 121,
+                lineNumber: 127,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1413,21 +1426,21 @@ function AddServiceDialog(param) {
                                 children: "Add New Product"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 128,
+                                lineNumber: 134,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                 className: "text-pink-500/70 text-[10px] uppercase tracking-widest",
-                                children: "Images are uploaded to secure storage."
+                                children: "Images are saved in cloud storage for permanent access."
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 129,
+                                lineNumber: 135,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 127,
+                        lineNumber: 133,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -1443,7 +1456,7 @@ function AddServiceDialog(param) {
                                             children: "Product Images"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 137,
+                                            lineNumber: 143,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1458,7 +1471,7 @@ function AddServiceDialog(param) {
                                                                 alt: ""
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                                lineNumber: 141,
+                                                                lineNumber: 147,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1468,18 +1481,18 @@ function AddServiceDialog(param) {
                                                                     className: "w-3 h-3"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                                    lineNumber: 142,
+                                                                    lineNumber: 148,
                                                                     columnNumber: 139
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                                lineNumber: 142,
+                                                                lineNumber: 148,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, idx, true, {
                                                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                        lineNumber: 140,
+                                                        lineNumber: 146,
                                                         columnNumber: 19
                                                     }, this)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1488,29 +1501,30 @@ function AddServiceDialog(param) {
                                                         return (_fileInputRef_current = fileInputRef.current) === null || _fileInputRef_current === void 0 ? void 0 : _fileInputRef_current.click();
                                                     },
                                                     disabled: loading,
-                                                    className: "aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center",
+                                                    type: "button",
+                                                    className: "aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center hover:bg-pink-100 transition-colors",
                                                     children: loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                                                         className: "animate-spin text-pink-400"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                        lineNumber: 146,
+                                                        lineNumber: 157,
                                                         columnNumber: 30
                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
                                                         className: "text-pink-300 w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                        lineNumber: 146,
+                                                        lineNumber: 157,
                                                         columnNumber: 83
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 145,
+                                                    lineNumber: 151,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 138,
+                                            lineNumber: 144,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1522,13 +1536,13 @@ function AddServiceDialog(param) {
                                             onChange: handleFileChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 149,
+                                            lineNumber: 160,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 136,
+                                    lineNumber: 142,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1540,7 +1554,7 @@ function AddServiceDialog(param) {
                                             children: "Product Name"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 153,
+                                            lineNumber: 164,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1551,13 +1565,13 @@ function AddServiceDialog(param) {
                                             onChange: (e)=>setName(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 154,
+                                            lineNumber: 165,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 152,
+                                    lineNumber: 163,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1572,7 +1586,7 @@ function AddServiceDialog(param) {
                                                     children: "Price ($)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 159,
+                                                    lineNumber: 170,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1583,13 +1597,13 @@ function AddServiceDialog(param) {
                                                     onChange: (e)=>setPrice(e.target.value)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 160,
+                                                    lineNumber: 171,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 158,
+                                            lineNumber: 169,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1600,7 +1614,7 @@ function AddServiceDialog(param) {
                                                     children: "Category"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 163,
+                                                    lineNumber: 174,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1612,24 +1626,24 @@ function AddServiceDialog(param) {
                                                             children: cat.name
                                                         }, cat.id, false, {
                                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                            lineNumber: 166,
+                                                            lineNumber: 177,
                                                             columnNumber: 21
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 164,
+                                                    lineNumber: 175,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 162,
+                                            lineNumber: 173,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 157,
+                                    lineNumber: 168,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1641,7 +1655,7 @@ function AddServiceDialog(param) {
                                             children: "Description"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 173,
+                                            lineNumber: 184,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -1652,24 +1666,24 @@ function AddServiceDialog(param) {
                                             onChange: (e)=>setDescription(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 174,
+                                            lineNumber: 185,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 172,
+                                    lineNumber: 183,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 135,
+                            lineNumber: 141,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 134,
+                        lineNumber: 140,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -1683,31 +1697,31 @@ function AddServiceDialog(param) {
                                     className: "animate-spin mr-2"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 181,
+                                    lineNumber: 192,
                                     columnNumber: 24
                                 }, this) : null,
-                                loading ? "Uploading to Cloud..." : "Publish to Everyone"
+                                loading ? "Uploading to Cloud Storage..." : "Save and Sync Globally"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 180,
+                            lineNumber: 191,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 179,
+                        lineNumber: 190,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                lineNumber: 126,
+                lineNumber: 132,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/AddServiceDialog.tsx",
-        lineNumber: 120,
+        lineNumber: 126,
         columnNumber: 5
     }, this);
 }
@@ -1944,6 +1958,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$index$2e$
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/provider.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$firestore$2f$use$2d$collection$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/firestore/use-collection.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$non$2d$blocking$2d$updates$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/non-blocking-updates.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$config$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/config.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm2017.js [app-client] (ecmascript)");
 ;
@@ -1966,7 +1981,7 @@ function GirlsStore() {
     _s();
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"])();
     const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useFirestore"])();
-    // 1. All State Hooks must be at the very top
+    // 1. All Hooks strictly at the top level
     const [mounted, setMounted] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isSupervisor, setIsSupervisor] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [clickCount, setClickCount] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
@@ -1974,23 +1989,13 @@ function GirlsStore() {
     const [isScrolled, setIsScrolled] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isMusicPlaying, setIsMusicPlaying] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isAddCategoryOpen, setIsAddCategoryOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [isEditCategoryOpen, setIsEditCategoryOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [categoryToEdit, setCategoryToEdit] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [newCategoryName, setNewCategoryName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [cart, setCart] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [isCartOpen, setIsCartOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [paymentMethod, setPaymentMethod] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('cash');
-    const [customerName, setCustomerName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [passwordInput, setPasswordInput] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const audioRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    // 2. Hydration protection
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "GirlsStore.useEffect": ()=>{
-            setMounted(true);
-        }
-    }["GirlsStore.useEffect"], []);
-    // 3. Real-time Queries & Memos
+    // 2. Real-time Subscription Queries
     const categoriesQuery = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemoFirebase"])({
         "GirlsStore.useMemoFirebase[categoriesQuery]": ()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["query"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(db, 'categories'))
     }["GirlsStore.useMemoFirebase[categoriesQuery]"], [
@@ -2003,6 +2008,7 @@ function GirlsStore() {
         db
     ]);
     const { data: dbProductsRaw, isLoading: isProductsLoading } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$firestore$2f$use$2d$collection$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCollection"])(productsQuery);
+    // 3. Memos for sorting and derived data
     const dbCategories = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "GirlsStore.useMemo[dbCategories]": ()=>{
             if (!dbCategoriesRaw) return [];
@@ -2025,15 +2031,15 @@ function GirlsStore() {
                     var _a_createdAt_toMillis, _a_createdAt, _a_createdAt1, _b_createdAt_toMillis, _b_createdAt, _b_createdAt1;
                     const timeA = ((_a_createdAt = a.createdAt) === null || _a_createdAt === void 0 ? void 0 : (_a_createdAt_toMillis = _a_createdAt.toMillis) === null || _a_createdAt_toMillis === void 0 ? void 0 : _a_createdAt_toMillis.call(_a_createdAt)) || ((_a_createdAt1 = a.createdAt) === null || _a_createdAt1 === void 0 ? void 0 : _a_createdAt1.seconds) * 1000 || 0;
                     const timeB = ((_b_createdAt = b.createdAt) === null || _b_createdAt === void 0 ? void 0 : (_b_createdAt_toMillis = _b_createdAt.toMillis) === null || _b_createdAt_toMillis === void 0 ? void 0 : _b_createdAt_toMillis.call(_b_createdAt)) || ((_b_createdAt1 = b.createdAt) === null || _b_createdAt1 === void 0 ? void 0 : _b_createdAt1.seconds) * 1000 || 0;
-                    return timeB - timeA;
+                    return timeB - timeA; // Latest first
                 }
             }["GirlsStore.useMemo[dbProducts]"]);
         }
     }["GirlsStore.useMemo[dbProducts]"], [
         dbProductsRaw
     ]);
-    const categories = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "GirlsStore.useMemo[categories]": ()=>{
+    const categoriesList = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "GirlsStore.useMemo[categoriesList]": ()=>{
             const base = [
                 {
                     id: "all",
@@ -2045,7 +2051,7 @@ function GirlsStore() {
                 ...dbCategories
             ];
         }
-    }["GirlsStore.useMemo[categories]"], [
+    }["GirlsStore.useMemo[categoriesList]"], [
         dbCategories
     ]);
     const filteredServices = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
@@ -2060,8 +2066,27 @@ function GirlsStore() {
         dbProducts,
         selectedCategoryId
     ]);
-    const cartTotal = cart.reduce((total, item)=>total + (item.service.price || 0) * item.quantity, 0);
-    // 4. Effects
+    const cartTotal = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "GirlsStore.useMemo[cartTotal]": ()=>{
+            return cart.reduce({
+                "GirlsStore.useMemo[cartTotal]": (total, item)=>{
+                    var _item_service;
+                    return total + (((_item_service = item.service) === null || _item_service === void 0 ? void 0 : _item_service.price) || 0) * item.quantity;
+                }
+            }["GirlsStore.useMemo[cartTotal]"], 0);
+        }
+    }["GirlsStore.useMemo[cartTotal]"], [
+        cart
+    ]);
+    // 4. Effects for UX
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "GirlsStore.useEffect": ()=>{
+            setMounted(true);
+            if (!(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$config$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["firebaseConfig"] === null || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$config$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["firebaseConfig"] === void 0 ? void 0 : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$config$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["firebaseConfig"].apiKey)) {
+                console.error("Firebase Configuration is missing! Check your environment variables.");
+            }
+        }
+    }["GirlsStore.useEffect"], []);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "GirlsStore.useEffect": ()=>{
             const handleScroll = {
@@ -2103,13 +2128,12 @@ function GirlsStore() {
             setIsPasswordDialogOpen(false);
             setPasswordInput("");
             toast({
-                title: "ACCESS GRANTED",
-                description: "Admin session active."
+                title: "ADMIN ACCESS GRANTED"
             });
         } else {
             toast({
                 variant: "destructive",
-                title: "ACCESS DENIED"
+                title: "INVALID PASSWORD"
             });
         }
     };
@@ -2125,15 +2149,24 @@ function GirlsStore() {
             });
             setNewCategoryName("");
             setIsAddCategoryOpen(false);
+            toast({
+                title: "New Section Added"
+            });
         } catch (e) {}
     };
     const addToCart = (service)=>{
         setCart((prev)=>{
-            const existing = prev.find((item)=>item.service.id === service.id);
-            if (existing) return prev.map((item)=>item.service.id === service.id ? {
+            const existing = prev.find((item)=>{
+                var _item_service;
+                return ((_item_service = item.service) === null || _item_service === void 0 ? void 0 : _item_service.id) === service.id;
+            });
+            if (existing) return prev.map((item)=>{
+                var _item_service;
+                return ((_item_service = item.service) === null || _item_service === void 0 ? void 0 : _item_service.id) === service.id ? {
                     ...item,
                     quantity: item.quantity + 1
-                } : item);
+                } : item;
+            });
             return [
                 ...prev,
                 {
@@ -2147,7 +2180,7 @@ function GirlsStore() {
             description: service.name
         });
     };
-    // 6. Early return after all hooks are defined
+    // 6. Safety Return
     if (!mounted) return null;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100",
@@ -2265,7 +2298,7 @@ function GirlsStore() {
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
                         className: "flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-8",
-                        children: categories.map((cat)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        children: categoriesList.map((cat)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 onClick: ()=>setSelectedCategoryId(cat.id),
                                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("whitespace-nowrap px-6 py-2 rounded-full text-[10px] uppercase font-semibold transition-all border", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500" : "bg-white/80 text-pink-400 border-pink-100"),
                                 children: cat.name
@@ -2293,7 +2326,7 @@ function GirlsStore() {
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                 className: "font-headline text-xl uppercase font-bold text-pink-700",
-                                children: "Admin Mode"
+                                children: "Admin Controls"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
                                 lineNumber: 192,
@@ -2303,7 +2336,7 @@ function GirlsStore() {
                                 className: "flex flex-wrap justify-center gap-3",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$AddServiceDialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AddServiceDialog"], {
-                                        categories: categories,
+                                        categories: categoriesList,
                                         selectedCategoryId: selectedCategoryId
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
@@ -2384,16 +2417,16 @@ function GirlsStore() {
                 className: "fixed bottom-6 left-6 h-12 w-12 rounded-full glass text-pink-500 shadow-xl z-50",
                 children: isMusicPlaying ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$volume$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Volume2$3e$__["Volume2"], {}, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 220,
+                    lineNumber: 221,
                     columnNumber: 27
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$volume$2d$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__VolumeX$3e$__["VolumeX"], {}, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 220,
+                    lineNumber: 221,
                     columnNumber: 41
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 219,
+                lineNumber: 220,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sheet"], {
@@ -2483,13 +2516,15 @@ function GirlsStore() {
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "space-y-6",
-                                    children: cart.map((item, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex gap-4 items-center animate-in fade-in slide-in-from-right-4",
+                                    children: cart.map((item, idx)=>{
+                                        var _item_service_imageUrls, _item_service, _item_service1, _item_service2;
+                                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "flex gap-4 items-center",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "w-20 h-20 rounded-2xl overflow-hidden bg-pink-50 border border-pink-100 relative",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                        src: item.service.imageUrls[0],
+                                                        src: ((_item_service = item.service) === null || _item_service === void 0 ? void 0 : (_item_service_imageUrls = _item_service.imageUrls) === null || _item_service_imageUrls === void 0 ? void 0 : _item_service_imageUrls[0]) || 'https://placehold.co/100',
                                                         className: "w-full h-full object-cover",
                                                         alt: ""
                                                     }, void 0, false, {
@@ -2507,7 +2542,7 @@ function GirlsStore() {
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
                                                             className: "font-display text-sm text-pink-900 uppercase font-black",
-                                                            children: item.service.name
+                                                            children: (_item_service1 = item.service) === null || _item_service1 === void 0 ? void 0 : _item_service1.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/page.tsx",
                                                             lineNumber: 255,
@@ -2517,7 +2552,7 @@ function GirlsStore() {
                                                             className: "text-pink-500 font-bold text-xs",
                                                             children: [
                                                                 "$",
-                                                                item.service.price,
+                                                                (_item_service2 = item.service) === null || _item_service2 === void 0 ? void 0 : _item_service2.price,
                                                                 " × ",
                                                                 item.quantity
                                                             ]
@@ -2554,7 +2589,8 @@ function GirlsStore() {
                                             fileName: "[project]/src/app/page.tsx",
                                             lineNumber: 250,
                                             columnNumber: 19
-                                        }, this))
+                                        }, this);
+                                    })
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/page.tsx",
                                     lineNumber: 248,
@@ -2634,7 +2670,7 @@ function GirlsStore() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-[14px] md:text-[22px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight",
+                        className: "text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight",
                         children: "© 2026 GIRLS STORE • BY HASSAN DEEB"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
@@ -2772,7 +2808,7 @@ function GirlsStore() {
         columnNumber: 5
     }, this);
 }
-_s(GirlsStore, "jjBMWpo5yfNUH1jEcGywXP69kgE=", false, function() {
+_s(GirlsStore, "hQpZITj0msJvH0355y7FQbKd+4A=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useFirestore"],

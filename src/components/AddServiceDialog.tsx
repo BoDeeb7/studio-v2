@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Loader2, X, AlertTriangle } from "lucide-react";
+import { Plus, Loader2, X } from "lucide-react";
 import { MakeupService } from './ServiceCard';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFirebase } from '@/firebase';
@@ -23,7 +23,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from "@/hooks/use-toast";
 
 interface AddServiceDialogProps {
-  onAdd?: (service: Omit<MakeupService, 'id'>) => Promise<void>;
   categories: { id: string, name: string }[];
   selectedCategoryId: string;
 }
@@ -43,9 +42,9 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
 
   useEffect(() => {
     if (isOpen) {
-      setCategory(selectedCategoryId === "all" ? "face" : selectedCategoryId);
+      setCategory(selectedCategoryId === "all" ? (categories.find(c => c.id !== 'all')?.id || "face") : selectedCategoryId);
     }
-  }, [isOpen, selectedCategoryId]);
+  }, [isOpen, selectedCategoryId, categories]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -68,48 +67,55 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
   };
 
   const handleSubmit = async () => {
-    if (!name || tempImages.length === 0) return;
+    if (!name || tempImages.length === 0) {
+      toast({ variant: "destructive", title: "Missing Data", description: "Please add a name and at least one image." });
+      return;
+    }
+    
     setLoading(true);
     
     try {
       const uploadedUrls: string[] = [];
 
-      // Atomic Sequence: Storage Upload First
+      // Phase 1: Upload Files to Storage (Atomic)
       for (let i = 0; i < tempImages.length; i++) {
         const item = tempImages[i];
-        const storageRef = ref(storage, `products/${Date.now()}_${i}_${item.file.name}`);
+        const storagePath = `products/${Date.now()}_${i}_${item.file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const storageRef = ref(storage, storagePath);
         
-        // Upload bytes (Never base64)
+        // Upload binary (Never Base64)
         const snapshot = await uploadBytes(storageRef, item.file);
         const downloadUrl = await getDownloadURL(snapshot.ref);
         uploadedUrls.push(downloadUrl);
       }
 
-      // Firestore Second: Save permanent links
-      await addDoc(collection(firestore, 'products'), {
+      // Phase 2: Save metadata to Firestore only after all uploads succeed
+      const productData = {
         name: name.trim(),
         price: Number(price),
         description: description.trim(),
         imageUrls: uploadedUrls,
         categoryId: category,
-        createdAt: serverTimestamp()
-      });
+        createdAt: serverTimestamp() // Official Firebase time
+      };
+
+      await addDoc(collection(firestore, 'products'), productData);
       
-      toast({ title: "Product Published", description: "Successfully saved to cloud storage." });
+      toast({ title: "Published Successfully", description: `${name} is now live for all customers.` });
       
-      // Cleanup
+      // Cleanup & Close
       setName("");
       setPrice("45");
       setDescription("");
-      tempImages.forEach(img => URL.revokeObjectURL(item.preview));
+      tempImages.forEach(img => URL.revokeObjectURL(img.preview));
       setTempImages([]);
       setIsOpen(false);
     } catch (e: any) {
-      console.error("CRITICAL UPLOAD ERROR:", e);
+      console.error("CRITICAL PERSISTENCE ERROR:", e);
       toast({ 
         variant: "destructive", 
-        title: "Publishing Failed", 
-        description: e.message || "Connection error. Please try again."
+        title: "Save Failed", 
+        description: "Firestore rejected the data. Check permissions or image sizes."
       });
     } finally {
       setLoading(false);
@@ -127,7 +133,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="font-display text-xl uppercase text-pink-700">Add New Product</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            Images are uploaded to secure storage.
+            Images are saved in cloud storage for permanent access.
           </DialogDescription>
         </DialogHeader>
         
@@ -142,7 +148,12 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
                     <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
-                <button onClick={() => fileInputRef.current?.click()} disabled={loading} className="aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center">
+                <button 
+                  onClick={() => fileInputRef.current?.click()} 
+                  disabled={loading}
+                  type="button"
+                  className="aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center hover:bg-pink-100 transition-colors"
+                >
                   {loading ? <Loader2 className="animate-spin text-pink-400" /> : <Plus className="text-pink-300 w-6 h-6" />}
                 </button>
               </div>
@@ -179,7 +190,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogFooter className="p-6 pt-2">
           <Button onClick={handleSubmit} disabled={loading || !name || tempImages.length === 0} className="w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]">
             {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-            {loading ? "Uploading to Cloud..." : "Publish to Everyone"}
+            {loading ? "Uploading to Cloud Storage..." : "Save and Sync Globally"}
           </Button>
         </DialogFooter>
       </DialogContent>

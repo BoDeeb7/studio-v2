@@ -5,7 +5,6 @@ import { Instagram, Zap, Lock, ShoppingBag, LogOut, X, Wallet, User, PlusCircle,
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceCard, MakeupService } from '@/components/ServiceCard';
-import { AIGeneratorDialog } from '@/components/AIGeneratorDialog';
 import { AddServiceDialog } from '@/components/AddServiceDialog';
 import { cn } from "@/lib/utils";
 import {
@@ -26,15 +25,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, doc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, firebaseConfig } from '@/firebase';
+import { collection, query, doc } from 'firebase/firestore';
 
 export default function GirlsStore() {
   const { toast } = useToast();
   const db = useFirestore();
   
-  // 1. All State Hooks must be at the very top
+  // 1. All Hooks strictly at the top level
   const [mounted, setMounted] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
   const [clickCount, setClickCount] = useState(0);
@@ -42,30 +40,22 @@ export default function GirlsStore() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
-  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<{id: string, name: string} | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [cart, setCart] = useState<{ service: MakeupService, quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'whish'>('cash');
-  const [customerName, setCustomerName] = useState("");
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // 2. Hydration protection
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // 3. Real-time Queries & Memos
+  // 2. Real-time Subscription Queries
   const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
   const { data: dbCategoriesRaw, isLoading: isCatsLoading } = useCollection(categoriesQuery);
 
   const productsQuery = useMemoFirebase(() => query(collection(db, 'products')), [db]);
   const { data: dbProductsRaw, isLoading: isProductsLoading } = useCollection(productsQuery);
 
+  // 3. Memos for sorting and derived data
   const dbCategories = useMemo(() => {
     if (!dbCategoriesRaw) return [];
     return [...dbCategoriesRaw].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -76,11 +66,11 @@ export default function GirlsStore() {
     return [...dbProductsRaw].sort((a: any, b: any) => {
       const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || 0;
       const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || 0;
-      return timeB - timeA;
+      return timeB - timeA; // Latest first
     });
   }, [dbProductsRaw]);
 
-  const categories = useMemo(() => {
+  const categoriesList = useMemo(() => {
     const base = [{ id: "all", name: "الكل - All" }];
     return [...base, ...dbCategories];
   }, [dbCategories]);
@@ -91,9 +81,18 @@ export default function GirlsStore() {
     return (dbProducts as MakeupService[]).filter(s => s.categoryId === selectedCategoryId);
   }, [dbProducts, selectedCategoryId]);
 
-  const cartTotal = cart.reduce((total, item) => total + ((item.service.price || 0) * item.quantity), 0);
+  const cartTotal = useMemo(() => {
+    return cart.reduce((total, item) => total + ((item.service?.price || 0) * item.quantity), 0);
+  }, [cart]);
 
-  // 4. Effects
+  // 4. Effects for UX
+  useEffect(() => {
+    setMounted(true);
+    if (!firebaseConfig?.apiKey) {
+      console.error("Firebase Configuration is missing! Check your environment variables.");
+    }
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
     window.addEventListener("scroll", handleScroll);
@@ -128,9 +127,9 @@ export default function GirlsStore() {
       setIsSupervisor(true);
       setIsPasswordDialogOpen(false);
       setPasswordInput("");
-      toast({ title: "ACCESS GRANTED", description: "Admin session active." });
+      toast({ title: "ADMIN ACCESS GRANTED" });
     } else {
-      toast({ variant: "destructive", title: "ACCESS DENIED" });
+      toast({ variant: "destructive", title: "INVALID PASSWORD" });
     }
   };
 
@@ -141,27 +140,28 @@ export default function GirlsStore() {
       await setDocumentNonBlocking(doc(db, 'categories', newId), { id: newId, name: newCategoryName.trim() }, { merge: true });
       setNewCategoryName("");
       setIsAddCategoryOpen(false);
+      toast({ title: "New Section Added" });
     } catch (e) {}
   };
 
   const addToCart = (service: MakeupService) => {
     setCart(prev => {
-      const existing = prev.find(item => item.service.id === service.id);
-      if (existing) return prev.map(item => item.service.id === service.id ? { ...item, quantity: item.quantity + 1 } : item);
+      const existing = prev.find(item => item.service?.id === service.id);
+      if (existing) return prev.map(item => item.service?.id === service.id ? { ...item, quantity: item.quantity + 1 } : item);
       return [...prev, { service, quantity: 1 }];
     });
     toast({ title: "Added to Bag", description: service.name });
   };
 
-  // 6. Early return after all hooks are defined
+  // 6. Safety Return
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
-      {/* Elegant Piano Music */}
+      {/* Background Audio */}
       <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2022/01/21/audio_73144d1840.mp3" />
 
-      {/* Persistent Nav */}
+      {/* Navigation */}
       <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-28 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
         <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-2xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">
           <span>GIRLS</span>
@@ -178,7 +178,7 @@ export default function GirlsStore() {
         </h1>
 
         <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-8">
-          {categories.map((cat) => (
+          {categoriesList.map((cat) => (
             <button key={cat.id} onClick={() => setSelectedCategoryId(cat.id)} className={cn("whitespace-nowrap px-6 py-2 rounded-full text-[10px] uppercase font-semibold transition-all border", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500" : "bg-white/80 text-pink-400 border-pink-100")}>
               {cat.name}
             </button>
@@ -189,9 +189,9 @@ export default function GirlsStore() {
       <main className="flex-grow max-w-6xl mx-auto px-4 md:px-8 py-4 w-full">
         {isSupervisor && (
           <div className="glass p-8 rounded-[3rem] mb-12 flex flex-col items-center gap-6 border-pink-200">
-            <h3 className="font-headline text-xl uppercase font-bold text-pink-700">Admin Mode</h3>
+            <h3 className="font-headline text-xl uppercase font-bold text-pink-700">Admin Controls</h3>
             <div className="flex flex-wrap justify-center gap-3">
-              <AddServiceDialog categories={categories} selectedCategoryId={selectedCategoryId} />
+              <AddServiceDialog categories={categoriesList} selectedCategoryId={selectedCategoryId} />
               <Button onClick={() => setIsAddCategoryOpen(true)} variant="outline" className="rounded-full bg-white text-[10px] uppercase h-12 px-8 text-pink-700">New Section</Button>
               <Button onClick={() => setIsSupervisor(false)} variant="ghost" className="text-pink-400">Exit Admin</Button>
             </div>
@@ -216,11 +216,11 @@ export default function GirlsStore() {
         )}
       </main>
 
+      {/* Bag & Music Controls */}
       <Button onClick={toggleMusic} className="fixed bottom-6 left-6 h-12 w-12 rounded-full glass text-pink-500 shadow-xl z-50">
         {isMusicPlaying ? <Volume2 /> : <VolumeX />}
       </Button>
 
-      {/* Enhanced Bag Sheet */}
       <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
         <SheetTrigger asChild>
           <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full bg-pink-500 text-white shadow-2xl z-50 hover:bg-pink-600 transition-transform active:scale-95">
@@ -247,13 +247,13 @@ export default function GirlsStore() {
             ) : (
               <div className="space-y-6">
                 {cart.map((item, idx) => (
-                  <div key={idx} className="flex gap-4 items-center animate-in fade-in slide-in-from-right-4">
+                  <div key={idx} className="flex gap-4 items-center">
                     <div className="w-20 h-20 rounded-2xl overflow-hidden bg-pink-50 border border-pink-100 relative">
-                      <img src={item.service.imageUrls[0]} className="w-full h-full object-cover" alt="" />
+                      <img src={item.service?.imageUrls?.[0] || 'https://placehold.co/100'} className="w-full h-full object-cover" alt="" />
                     </div>
                     <div className="flex-grow">
-                      <h4 className="font-display text-sm text-pink-900 uppercase font-black">{item.service.name}</h4>
-                      <p className="text-pink-500 font-bold text-xs">${item.service.price} × {item.quantity}</p>
+                      <h4 className="font-display text-sm text-pink-900 uppercase font-black">{item.service?.name}</h4>
+                      <p className="text-pink-500 font-bold text-xs">${item.service?.price} × {item.quantity}</p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => setCart(prev => prev.filter((_, i) => i !== idx))} className="text-pink-200 hover:text-red-400">
                       <X className="w-4 h-4" />
@@ -279,7 +279,7 @@ export default function GirlsStore() {
 
       <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
         <p className="text-pink-400 uppercase tracking-widest font-bold text-[14px] md:text-[22px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
-        <p className="text-[14px] md:text-[22px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
+        <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
       </footer>
 
       {/* Admin Auth Dialog */}

@@ -32,6 +32,7 @@ export function getSdks(firebaseApp: FirebaseApp) {
   };
 }
 
+export { firebaseConfig };
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';

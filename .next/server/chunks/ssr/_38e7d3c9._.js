@@ -54,6 +54,8 @@ __turbopack_context__.s([
     ()=>deleteDocumentNonBlocking,
     "errorEmitter",
     ()=>errorEmitter,
+    "firebaseConfig",
+    ()=>firebaseConfig,
     "getSdks",
     ()=>getSdks,
     "initializeFirebase",
@@ -110,6 +112,9 @@ const deleteDocumentNonBlocking = (0, __TURBOPACK__imported__module__$5b$project
 const errorEmitter = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
     throw new Error("Attempted to call errorEmitter() from the server but errorEmitter is on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
 }, "[project]/src/firebase/index.ts <module evaluation>", "errorEmitter");
+const firebaseConfig = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
+    throw new Error("Attempted to call firebaseConfig() from the server but firebaseConfig is on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
+}, "[project]/src/firebase/index.ts <module evaluation>", "firebaseConfig");
 const getSdks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
     throw new Error("Attempted to call getSdks() from the server but getSdks is on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
 }, "[project]/src/firebase/index.ts <module evaluation>", "getSdks");
@@ -178,6 +183,8 @@ __turbopack_context__.s([
     ()=>deleteDocumentNonBlocking,
     "errorEmitter",
     ()=>errorEmitter,
+    "firebaseConfig",
+    ()=>firebaseConfig,
     "getSdks",
     ()=>getSdks,
     "initializeFirebase",
@@ -234,6 +241,9 @@ const deleteDocumentNonBlocking = (0, __TURBOPACK__imported__module__$5b$project
 const errorEmitter = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
     throw new Error("Attempted to call errorEmitter() from the server but errorEmitter is on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
 }, "[project]/src/firebase/index.ts", "errorEmitter");
+const firebaseConfig = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
+    throw new Error("Attempted to call firebaseConfig() from the server but firebaseConfig is on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
+}, "[project]/src/firebase/index.ts", "firebaseConfig");
 const getSdks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
     throw new Error("Attempted to call getSdks() from the server but getSdks is on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
 }, "[project]/src/firebase/index.ts", "getSdks");
