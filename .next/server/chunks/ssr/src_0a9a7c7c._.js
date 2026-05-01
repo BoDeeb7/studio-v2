@@ -1179,6 +1179,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$triangle$2d$alert$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__AlertTriangle$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/triangle-alert.js [app-ssr] (ecmascript) <export default as AlertTriangle>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/scroll-area.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/alert.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$index$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/src/firebase/index.ts [app-ssr] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/provider.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$non$2d$blocking$2d$updates$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/non-blocking-updates.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/index.mjs [app-ssr] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.node.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/hooks/use-toast.ts [app-ssr] (ecmascript)");
 "use client";
 ;
 ;
@@ -1190,7 +1196,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$a
 ;
 ;
 ;
+;
+;
+;
 function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
+    const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useToast"])();
+    const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useFirestore"])();
     const [isOpen, setIsOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [name, setName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
@@ -1208,36 +1219,65 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
         isOpen,
         selectedCategoryId
     ]);
-    // Check total size of Base64 strings
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const totalSize = imageUrls.reduce((acc, img)=>acc + img.length, 0);
-        // 1MB is approx 1,000,000 chars in Base64
-        setSizeWarning(totalSize > 850000);
+        setSizeWarning(totalSize > 800000);
     }, [
         imageUrls
     ]);
-    const handleFileChange = (e)=>{
+    // Function to compress images using Canvas
+    const compressImage = (base64)=>{
+        return new Promise((resolve)=>{
+            const img = new Image();
+            img.src = base64;
+            img.onload = ()=>{
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                // Resize logic (max 800px)
+                const MAX_SIZE = 800;
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                // Quality 0.7 (70%) reduces size significantly
+                const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(compressed);
+            };
+        });
+    };
+    const handleFileChange = async (e)=>{
         const files = e.target.files;
         if (files && files.length > 0) {
+            setLoading(true);
             const newImages = [];
-            Array.from(files).forEach((file)=>{
-                // Warning: Very large files (> 500KB each) will cause issues
-                if (file.size > 800000) {
-                    alert("Image is too large! Please use a smaller photo or a screenshot to reduce size.");
-                    return;
-                }
+            const fileList = Array.from(files);
+            for (const file of fileList){
                 const reader = new FileReader();
-                reader.onloadend = ()=>{
-                    newImages.push(reader.result);
-                    if (newImages.length === files.length) {
-                        setImageUrls((prev)=>[
-                                ...prev,
-                                ...newImages
-                            ]);
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
+                const base64 = await new Promise((resolve)=>{
+                    reader.onloadend = ()=>resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+                // Auto-compress before adding to state
+                const compressed = await compressImage(base64);
+                newImages.push(compressed);
+            }
+            setImageUrls((prev)=>[
+                    ...prev,
+                    ...newImages
+                ]);
+            setLoading(false);
         }
     };
     const removeImage = (index)=>{
@@ -1247,12 +1287,18 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
         if (!name || imageUrls.length === 0) return;
         setLoading(true);
         try {
-            await onAdd({
-                name,
+            // Ensure we are sending to Firestore and awaiting the response
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$non$2d$blocking$2d$updates$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["addDocumentNonBlocking"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["collection"])(db, 'products'), {
+                name: name.trim(),
                 price: Number(price),
-                description,
+                description: description.trim(),
                 imageUrls: imageUrls,
-                categoryId: category
+                categoryId: category,
+                createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])() // Official Firebase Time
+            });
+            toast({
+                title: "Product Published",
+                description: "Successfully saved to cloud storage."
             });
             setName("");
             setPrice("45");
@@ -1260,7 +1306,12 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
             setImageUrls([]);
             setIsOpen(false);
         } catch (e) {
-            console.error("Submit error", e);
+            console.error("CRITICAL FIRESTORE ERROR:", e);
+            toast({
+                variant: "destructive",
+                title: "Save Failed",
+                description: e.message?.includes('too large') ? "Images are still too large. Try fewer photos." : "Could not connect to database. Check internet."
+            });
         } finally{
             setLoading(false);
         }
@@ -1279,19 +1330,19 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                             className: "w-4 h-4 mr-2"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 112,
+                            lineNumber: 164,
                             columnNumber: 11
                         }, this),
                         " Manual Add"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                    lineNumber: 108,
+                    lineNumber: 160,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                lineNumber: 107,
+                lineNumber: 159,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1305,21 +1356,21 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                 children: "Add New Product"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 117,
+                                lineNumber: 169,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                 className: "text-pink-500/70 text-[10px] uppercase tracking-widest",
-                                children: "Enter details and upload small images."
+                                children: "Data is auto-compressed and synced globally."
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 118,
+                                lineNumber: 170,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 116,
+                        lineNumber: 168,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -1335,21 +1386,21 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                             className: "h-4 w-4"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 127,
+                                            lineNumber: 179,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AlertDescription"], {
                                             className: "text-[10px] font-bold",
-                                            children: "Warning: Too many images or files too large! Firestore limit is 1MB. Try removing some photos."
+                                            children: "Total data approaching 1MB limit. Remove some photos."
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 128,
+                                            lineNumber: 180,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 126,
+                                    lineNumber: 178,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1357,10 +1408,10 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
                                             className: "text-pink-600 font-bold text-xs uppercase",
-                                            children: "Product Images"
+                                            children: "Product Images (Auto-Compressed)"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 136,
+                                            lineNumber: 187,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1371,62 +1422,72 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                                 src: url,
-                                                                className: "w-full h-full object-cover"
+                                                                className: "w-full h-full object-cover",
+                                                                alt: ""
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                                lineNumber: 140,
+                                                                lineNumber: 191,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 onClick: ()=>removeImage(idx),
-                                                                className: "absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                                                                className: "absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-100 transition-opacity",
                                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {
                                                                     className: "w-3 h-3"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                                    lineNumber: 145,
+                                                                    lineNumber: 196,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                                lineNumber: 141,
+                                                                lineNumber: 192,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, idx, true, {
                                                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                        lineNumber: 139,
+                                                        lineNumber: 190,
                                                         columnNumber: 19
                                                     }, this)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                     onClick: ()=>fileInputRef.current?.click(),
+                                                    disabled: loading,
                                                     className: "aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center hover:bg-pink-100/50 transition-colors",
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
-                                                            className: "text-pink-300 w-6 h-6"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                            lineNumber: 153,
-                                                            columnNumber: 19
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: "text-[8px] uppercase font-bold text-pink-400 mt-1",
-                                                            children: "Add"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                            lineNumber: 154,
-                                                            columnNumber: 19
-                                                        }, this)
-                                                    ]
-                                                }, void 0, true, {
+                                                    children: loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
+                                                        className: "animate-spin text-pink-400"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                        lineNumber: 205,
+                                                        columnNumber: 30
+                                                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
+                                                                className: "text-pink-300 w-6 h-6"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                                lineNumber: 207,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                className: "text-[8px] uppercase font-bold text-pink-400 mt-1",
+                                                                children: "Add"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AddServiceDialog.tsx",
+                                                                lineNumber: 208,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true)
+                                                }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 149,
+                                                    lineNumber: 200,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 137,
+                                            lineNumber: 188,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1438,13 +1499,13 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                             onChange: handleFileChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 157,
+                                            lineNumber: 213,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 135,
+                                    lineNumber: 186,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1456,7 +1517,7 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                             children: "Product Name"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 168,
+                                            lineNumber: 224,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1467,13 +1528,13 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                             onChange: (e)=>setName(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 169,
+                                            lineNumber: 225,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 167,
+                                    lineNumber: 223,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1488,7 +1549,7 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                                     children: "Price ($)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 180,
+                                                    lineNumber: 236,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1499,13 +1560,13 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                                     onChange: (e)=>setPrice(e.target.value)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 181,
+                                                    lineNumber: 237,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 179,
+                                            lineNumber: 235,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1516,7 +1577,7 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                                     children: "Category"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 190,
+                                                    lineNumber: 246,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1528,24 +1589,24 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                                             children: cat.name
                                                         }, cat.id, false, {
                                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                            lineNumber: 197,
+                                                            lineNumber: 253,
                                                             columnNumber: 21
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                                    lineNumber: 191,
+                                                    lineNumber: 247,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 189,
+                                            lineNumber: 245,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 178,
+                                    lineNumber: 234,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1557,7 +1618,7 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                             children: "Description"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 204,
+                                            lineNumber: 260,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -1568,24 +1629,24 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                             onChange: (e)=>setDescription(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                            lineNumber: 205,
+                                            lineNumber: 261,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                    lineNumber: 203,
+                                    lineNumber: 259,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 124,
+                            lineNumber: 176,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 123,
+                        lineNumber: 175,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -1598,29 +1659,29 @@ function AddServiceDialog({ onAdd, categories, selectedCategoryId }) {
                                 className: "animate-spin"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                                lineNumber: 222,
+                                lineNumber: 278,
                                 columnNumber: 24
-                            }, this) : "Publish Product"
+                            }, this) : "Publish to Everyone"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddServiceDialog.tsx",
-                            lineNumber: 217,
+                            lineNumber: 273,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/AddServiceDialog.tsx",
-                        lineNumber: 216,
+                        lineNumber: 272,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/AddServiceDialog.tsx",
-                lineNumber: 115,
+                lineNumber: 167,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/AddServiceDialog.tsx",
-        lineNumber: 106,
+        lineNumber: 158,
         columnNumber: 5
     }, this);
 }

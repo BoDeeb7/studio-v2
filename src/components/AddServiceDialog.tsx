@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -14,18 +15,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Camera, Loader2, Trash2, X, AlertTriangle } from "lucide-react";
+import { Plus, Loader2, X, AlertTriangle } from "lucide-react";
 import { MakeupService } from './ServiceCard';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
 
 interface AddServiceDialogProps {
-  onAdd: (service: Omit<MakeupService, 'id'>) => void;
+  onAdd: (service: Omit<MakeupService, 'id'>) => Promise<void>;
   categories: { id: string, name: string }[];
   selectedCategoryId: string;
 }
 
 export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddServiceDialogProps) {
+  const { toast } = useToast();
+  const db = useFirestore();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -43,33 +49,68 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
     }
   }, [isOpen, selectedCategoryId]);
 
-  // Check total size of Base64 strings
   useEffect(() => {
     const totalSize = imageUrls.reduce((acc, img) => acc + img.length, 0);
-    // 1MB is approx 1,000,000 chars in Base64
-    setSizeWarning(totalSize > 850000);
+    setSizeWarning(totalSize > 800000);
   }, [imageUrls]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const newImages: string[] = [];
-      Array.from(files).forEach(file => {
-        // Warning: Very large files (> 500KB each) will cause issues
-        if (file.size > 800000) {
-          alert("Image is too large! Please use a smaller photo or a screenshot to reduce size.");
-          return;
+  // Function to compress images using Canvas
+  const compressImage = (base64: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Resize logic (max 800px)
+        const MAX_SIZE = 800;
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
         }
 
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Quality 0.7 (70%) reduces size significantly
+        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+        resolve(compressed);
+      };
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setLoading(true);
+      const newImages: string[] = [];
+      const fileList = Array.from(files);
+
+      for (const file of fileList) {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          newImages.push(reader.result as string);
-          if (newImages.length === files.length) {
-            setImageUrls(prev => [...prev, ...newImages]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+        const base64: string = await new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        
+        // Auto-compress before adding to state
+        const compressed = await compressImage(base64);
+        newImages.push(compressed);
+      }
+      
+      setImageUrls(prev => [...prev, ...newImages]);
+      setLoading(false);
     }
   };
 
@@ -82,21 +123,32 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
     setLoading(true);
     
     try {
-      await onAdd({
-        name,
+      // Ensure we are sending to Firestore and awaiting the response
+      await addDocumentNonBlocking(collection(db, 'products'), {
+        name: name.trim(),
         price: Number(price),
-        description,
+        description: description.trim(),
         imageUrls: imageUrls,
-        categoryId: category
+        categoryId: category,
+        createdAt: serverTimestamp() // Official Firebase Time
       });
+      
+      toast({ title: "Product Published", description: "Successfully saved to cloud storage." });
       
       setName("");
       setPrice("45");
       setDescription("");
       setImageUrls([]);
       setIsOpen(false);
-    } catch (e) {
-      console.error("Submit error", e);
+    } catch (e: any) {
+      console.error("CRITICAL FIRESTORE ERROR:", e);
+      toast({ 
+        variant: "destructive", 
+        title: "Save Failed", 
+        description: e.message?.includes('too large') 
+          ? "Images are still too large. Try fewer photos." 
+          : "Could not connect to database. Check internet."
+      });
     } finally {
       setLoading(false);
     }
@@ -116,7 +168,7 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="font-display text-xl uppercase text-pink-700">Add New Product</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            Enter details and upload small images.
+            Data is auto-compressed and synced globally.
           </DialogDescription>
         </DialogHeader>
         
@@ -126,21 +178,20 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
               <Alert variant="destructive" className="bg-red-50 border-red-200 py-2">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-[10px] font-bold">
-                  Warning: Too many images or files too large! Firestore limit is 1MB. Try removing some photos.
+                  Total data approaching 1MB limit. Remove some photos.
                 </AlertDescription>
               </Alert>
             )}
 
-            {/* Multiple Image Upload Area */}
             <div className="space-y-4">
-              <Label className="text-pink-600 font-bold text-xs uppercase">Product Images</Label>
+              <Label className="text-pink-600 font-bold text-xs uppercase">Product Images (Auto-Compressed)</Label>
               <div className="grid grid-cols-3 gap-2">
                 {imageUrls.map((url, idx) => (
                   <div key={idx} className="aspect-square relative rounded-xl overflow-hidden border border-pink-100 group">
-                    <img src={url} className="w-full h-full object-cover" />
+                    <img src={url} className="w-full h-full object-cover" alt="" />
                     <button 
                       onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-100 transition-opacity"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -148,10 +199,15 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
                 ))}
                 <button
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
                   className="aspect-square rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center hover:bg-pink-100/50 transition-colors"
                 >
-                  <Plus className="text-pink-300 w-6 h-6" />
-                  <span className="text-[8px] uppercase font-bold text-pink-400 mt-1">Add</span>
+                  {loading ? <Loader2 className="animate-spin text-pink-400" /> : (
+                    <>
+                      <Plus className="text-pink-300 w-6 h-6" />
+                      <span className="text-[8px] uppercase font-bold text-pink-400 mt-1">Add</span>
+                    </>
+                  )}
                 </button>
               </div>
               <input 
@@ -219,7 +275,7 @@ export function AddServiceDialog({ onAdd, categories, selectedCategoryId }: AddS
             disabled={loading || !name || imageUrls.length === 0}
             className="w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]"
           >
-            {loading ? <Loader2 className="animate-spin" /> : "Publish Product"}
+            {loading ? <Loader2 className="animate-spin" /> : "Publish to Everyone"}
           </Button>
         </DialogFooter>
       </DialogContent>
