@@ -577,6 +577,8 @@ __turbopack_context__.s([
     ()=>useFirestore,
     "useMemoFirebase",
     ()=>useMemoFirebase,
+    "useStorage",
+    ()=>useStorage,
     "useUser",
     ()=>useUser
 ]);
@@ -591,13 +593,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Firebas
 ;
 ;
 const FirebaseContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createContext"])(undefined);
-const FirebaseProvider = ({ children, firebaseApp, firestore, auth })=>{
+const FirebaseProvider = ({ children, firebaseApp, firestore, auth, storage })=>{
     const [userAuthState, setUserAuthState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
         user: null,
         isUserLoading: true,
         userError: null
     });
-    // Effect to subscribe to Firebase auth state changes
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!auth) {
             setUserAuthState({
@@ -607,37 +608,27 @@ const FirebaseProvider = ({ children, firebaseApp, firestore, auth })=>{
             });
             return;
         }
-        setUserAuthState({
-            user: null,
-            isUserLoading: true,
-            userError: null
-        }); // Reset on auth instance change
-        const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onAuthStateChanged"])(auth, (firebaseUser)=>{
-            setUserAuthState({
-                user: firebaseUser,
+        const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onAuthStateChanged"])(auth, (u)=>setUserAuthState({
+                user: u,
                 isUserLoading: false,
                 userError: null
-            });
-        }, (error)=>{
-            console.error("FirebaseProvider: onAuthStateChanged error:", error);
-            setUserAuthState({
+            }), (e)=>setUserAuthState({
                 user: null,
                 isUserLoading: false,
-                userError: error
-            });
-        });
-        return ()=>unsubscribe(); // Cleanup
+                userError: e
+            }));
+        return ()=>unsubscribe();
     }, [
         auth
-    ]); // Depends on the auth instance
-    // Memoize the context value
+    ]);
     const contextValue = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
-        const servicesAvailable = !!(firebaseApp && firestore && auth);
+        const available = !!(firebaseApp && firestore && auth && storage);
         return {
-            areServicesAvailable: servicesAvailable,
-            firebaseApp: servicesAvailable ? firebaseApp : null,
-            firestore: servicesAvailable ? firestore : null,
-            auth: servicesAvailable ? auth : null,
+            areServicesAvailable: available,
+            firebaseApp: available ? firebaseApp : null,
+            firestore: available ? firestore : null,
+            auth: available ? auth : null,
+            storage: available ? storage : null,
             user: userAuthState.user,
             isUserLoading: userAuthState.isUserLoading,
             userError: userAuthState.userError
@@ -646,6 +637,7 @@ const FirebaseProvider = ({ children, firebaseApp, firestore, auth })=>{
         firebaseApp,
         firestore,
         auth,
+        storage,
         userAuthState
     ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(FirebaseContext.Provider, {
@@ -653,54 +645,41 @@ const FirebaseProvider = ({ children, firebaseApp, firestore, auth })=>{
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$FirebaseErrorListener$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FirebaseErrorListener"], {}, void 0, false, {
                 fileName: "[project]/src/firebase/provider.tsx",
-                lineNumber: 108,
+                lineNumber: 94,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             children
         ]
     }, void 0, true, {
         fileName: "[project]/src/firebase/provider.tsx",
-        lineNumber: 107,
+        lineNumber: 93,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
 const useFirebase = ()=>{
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useContext"])(FirebaseContext);
-    if (context === undefined) {
-        throw new Error('useFirebase must be used within a FirebaseProvider.');
-    }
-    if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
-        throw new Error('Firebase core services not available. Check FirebaseProvider props.');
+    if (!context || !context.areServicesAvailable) {
+        throw new Error('Firebase core services not available. Check FirebaseProvider.');
     }
     return {
         firebaseApp: context.firebaseApp,
         firestore: context.firestore,
         auth: context.auth,
+        storage: context.storage,
         user: context.user,
         isUserLoading: context.isUserLoading,
         userError: context.userError
     };
 };
-const useAuth = ()=>{
-    const { auth } = useFirebase();
-    return auth;
-};
-const useFirestore = ()=>{
-    const { firestore } = useFirebase();
-    return firestore;
-};
-const useFirebaseApp = ()=>{
-    const { firebaseApp } = useFirebase();
-    return firebaseApp;
-};
+const useAuth = ()=>useFirebase().auth;
+const useFirestore = ()=>useFirebase().firestore;
+const useStorage = ()=>useFirebase().storage;
+const useFirebaseApp = ()=>useFirebase().firebaseApp;
 function useMemoFirebase(factory, deps) {
-    const memoized = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(factory, deps);
-    if (typeof memoized !== 'object' || memoized === null) return memoized;
-    memoized.__memo = true;
-    return memoized;
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(factory, deps);
 }
 const useUser = ()=>{
-    const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
+    const { user, isUserLoading, userError } = useFirebase();
     return {
         user,
         isUserLoading,
@@ -726,17 +705,17 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$index$2e$
 ;
 function FirebaseClientProvider({ children }) {
     const firebaseServices = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
-        // Initialize Firebase on the client side, once per component mount.
         return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$index$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["initializeFirebase"])();
-    }, []); // Empty dependency array ensures this runs only once on mount
+    }, []);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FirebaseProvider"], {
         firebaseApp: firebaseServices.firebaseApp,
         auth: firebaseServices.auth,
         firestore: firebaseServices.firestore,
+        storage: firebaseServices.storage,
         children: children
     }, void 0, false, {
         fileName: "[project]/src/firebase/client-provider.tsx",
-        lineNumber: 18,
+        lineNumber: 17,
         columnNumber: 5
     }, this);
 }
@@ -1074,6 +1053,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/node-esm/index.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/index.mjs [app-ssr] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.node.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$storage$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/storage/dist/index.mjs [app-ssr] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/storage/dist/node-esm/index.node.esm.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/provider.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$client$2d$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/client-provider.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$firestore$2f$use$2d$collection$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/firebase/firestore/use-collection.tsx [app-ssr] (ecmascript)");
@@ -1087,33 +1068,27 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$error$2d$
 ;
 ;
 ;
+;
 function initializeFirebase() {
     if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getApps"])().length) {
-        // Important! initializeApp() is called without any arguments because Firebase App Hosting
-        // integrates with the initializeApp() function to provide the environment variables needed to
-        // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-        // without arguments.
         let firebaseApp;
         try {
-            // Attempt to initialize via Firebase App Hosting environment variables
             firebaseApp = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["initializeApp"])();
         } catch (e) {
-            // Only warn in production because it's normal to use the firebaseConfig to initialize
-            // during development
             if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
             ;
             firebaseApp = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["initializeApp"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$config$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["firebaseConfig"]);
         }
         return getSdks(firebaseApp);
     }
-    // If already initialized, return the SDKs with the already initialized App
     return getSdks((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getApp"])());
 }
 function getSdks(firebaseApp) {
     return {
         firebaseApp,
         auth: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getAuth"])(firebaseApp),
-        firestore: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getFirestore"])(firebaseApp)
+        firestore: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getFirestore"])(firebaseApp),
+        storage: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStorage"])(firebaseApp)
     };
 }
 ;
@@ -1171,6 +1146,8 @@ __turbopack_context__.s([
     ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useFirestore"],
     "useMemoFirebase",
     ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemoFirebase"],
+    "useStorage",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useStorage"],
     "useUser",
     ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useUser"]
 ]);

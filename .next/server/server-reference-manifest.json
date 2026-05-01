@@ -1,21 +1,5 @@
 {
-  "node": {
-    "406446280334e5ab6c80afaa05f9aba83de4f8f5a9": {
-      "workers": {
-        "app/page": {
-          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/generate-makeup-description-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "generateMakeupDescription",
-          "filename": "src/ai/flows/generate-makeup-description-flow.ts"
-        }
-      },
-      "layer": {
-        "app/page": "action-browser"
-      },
-      "filename": "src/ai/flows/generate-makeup-description-flow.ts",
-      "exportedName": "generateMakeupDescription"
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "W5SXsM4GsgVfn73IxCEMGmrOTUUv/iqGsklfRkKacUg="
 }
