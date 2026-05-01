@@ -20,9 +20,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, useFirebase } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -183,17 +182,16 @@ export default function GirlsStore() {
       </nav>
 
       <header className="pt-12 pb-8 px-6 max-w-6xl mx-auto w-full">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <div onClick={handleAdminTrigger} className="font-display text-[45px] md:text-[60px] font-black leading-[0.85] text-[#d41c73] cursor-pointer">
             <span className="block">GIRLS</span>
             <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
           </div>
-          <div className="hidden sm:block">
-            <p className="luxury-signature text-[#d41c73] text-[16px]">POWERED BY HASSAN DEEB</p>
+          <div className="pt-4 md:pt-6">
+            <p className="font-display font-bold text-[#d41c73] text-[14px] md:text-[22px] uppercase tracking-tighter">
+              POWERED BY HASSAN DEEB
+            </p>
           </div>
-        </div>
-        <div className="sm:hidden mt-2">
-           <p className="luxury-signature text-[#d41c73] text-[11px]">POWERED BY HASSAN DEEB</p>
         </div>
 
         <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start mt-10">
@@ -305,10 +303,15 @@ export default function GirlsStore() {
       </Sheet>
 
       <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
-        <p className="luxury-signature text-[#d41c73] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE</p>
-          <p className="luxury-signature text-[#d41c73]/60">ESTABLISHED BY HASSAN DEEB</p>
+        <div className="mb-8">
+          <p className="font-display font-black text-[#d41c73] text-[18px] md:text-[24px] uppercase tracking-wide">
+            WHISH MONEY / CASH ON DELIVERY
+          </p>
+        </div>
+        <div className="flex flex-col items-center">
+          <p className="font-body text-[#d41c73] text-[11px] md:text-[14px] font-semibold opacity-80 uppercase tracking-widest">
+            © 2026 GIRLS STORE • BY HASSAN DEEB
+          </p>
         </div>
       </footer>
 

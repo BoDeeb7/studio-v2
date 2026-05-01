@@ -1787,6 +1787,14 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1rem;
 }
 
+.text-\[14px\] {
+  font-size: 14px;
+}
+
+.text-\[18px\] {
+  font-size: 18px;
+}
+
 .font-black {
   font-weight: 900;
 }
@@ -1842,6 +1850,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .tracking-widest {
   letter-spacing: .1em;
+}
+
+.tracking-tighter {
+  letter-spacing: -.05em;
+}
+
+.tracking-wide {
+  letter-spacing: .025em;
 }
 
 .text-\[\#d41c73\] {
@@ -2003,6 +2019,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .opacity-90 {
   opacity: .9;
+}
+
+.opacity-80 {
+  opacity: .8;
 }
 
 .shadow-2xl {
@@ -3227,6 +3247,10 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: .5rem;
   }
 
+  .md\:pt-6 {
+    padding-top: 1.5rem;
+  }
+
   .md\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -3267,6 +3291,18 @@ h1, h2, h3, h4, h5, h6 {
   .md\:text-xl {
     font-size: 1.25rem;
     line-height: 1.75rem;
+  }
+
+  .md\:text-\[14px\] {
+    font-size: 14px;
+  }
+
+  .md\:text-\[22px\] {
+    font-size: 22px;
+  }
+
+  .md\:text-\[24px\] {
+    font-size: 24px;
   }
 
   .md\:opacity-0 {
