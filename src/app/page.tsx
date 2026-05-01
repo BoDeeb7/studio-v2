@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ShoppingBag, Volume2, VolumeX, PlusCircle, X } from 'lucide-react';
+import { ShoppingBag, Volume2, VolumeX, PlusCircle, X, Trash2, Settings2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceCard, MakeupService } from '@/components/ServiceCard';
@@ -39,6 +39,7 @@ export default function GirlsStore() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [cart, setCart] = useState<{ service: MakeupService, quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -47,34 +48,24 @@ export default function GirlsStore() {
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // التأكد من تهيئة Firebase والدخول المجهول للسماح بالكتابة في السحاب
   useEffect(() => {
     setMounted(true);
-    if (!firebaseConfig.apiKey) {
-      console.error("CRITICAL: Firebase configuration is missing or invalid.");
-    }
-    
-    // تسجيل الدخول مجهولاً لضمان صلاحيات الرفع
     if (auth && !auth.currentUser) {
       signInAnonymously(auth).catch(err => console.error("Auth Error:", err));
     }
   }, [auth]);
 
-  // اشتراك لحظي (Real-time) للأقسام
   const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
   const { data: dbCategoriesRaw, isLoading: isCatsLoading } = useCollection(categoriesQuery);
 
-  // اشتراك لحظي (Real-time) للمنتجات
   const productsQuery = useMemoFirebase(() => query(collection(db, 'products')), [db]);
   const { data: dbProductsRaw, isLoading: isProductsLoading } = useCollection(productsQuery);
 
-  // ترتيب الأقسام أبجدياً
   const dbCategories = useMemo(() => {
     if (!dbCategoriesRaw) return [];
     return [...dbCategoriesRaw].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [dbCategoriesRaw]);
 
-  // ترتيب المنتجات (الأحدث أولاً) مع معالجة التحديث المتفائل
   const dbProducts = useMemo(() => {
     if (!dbProductsRaw) return [];
     return [...dbProductsRaw].sort((a: any, b: any) => {
@@ -151,6 +142,19 @@ export default function GirlsStore() {
     }
   };
 
+  const handleDeleteCategory = async (catId: string) => {
+    try {
+      await deleteDocumentNonBlocking(doc(db, 'categories', catId));
+      if (selectedCategoryId === catId) {
+        setSelectedCategoryId("all");
+      }
+      toast({ title: "Section Deleted Successfully" });
+    } catch (e) {
+      console.error("Category Delete Error:", e);
+      toast({ variant: "destructive", title: "Error Deleting Section" });
+    }
+  };
+
   const addToCart = (service: MakeupService) => {
     setCart(prev => {
       const existing = prev.find(item => item.service?.id === service.id);
@@ -164,7 +168,7 @@ export default function GirlsStore() {
 
   return (
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
-      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/02/10/audio_51a44e532b.mp3" />
+      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/01/21/audio_18c5e9f854.mp3" />
 
       <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-28 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
         <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-2xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">
@@ -197,6 +201,9 @@ export default function GirlsStore() {
             <div className="flex flex-wrap justify-center gap-3">
               <AddServiceDialog categories={categoriesList} selectedCategoryId={selectedCategoryId} />
               <Button onClick={() => setIsAddCategoryOpen(true)} variant="outline" className="rounded-full bg-white text-[10px] uppercase h-12 px-8 text-pink-700">New Section</Button>
+              <Button onClick={() => setIsManageCategoriesOpen(true)} variant="outline" className="rounded-full bg-white text-[10px] uppercase h-12 px-8 text-pink-700 flex items-center gap-2">
+                <Settings2 className="w-4 h-4" /> Manage Sections
+              </Button>
               <Button onClick={() => setIsSupervisor(false)} variant="ghost" className="text-pink-400">Exit Admin</Button>
             </div>
           </div>
@@ -314,6 +321,33 @@ export default function GirlsStore() {
             />
             <Button onClick={handleAddCategory} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold">Create Section</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isManageCategoriesOpen} onOpenChange={setIsManageCategoriesOpen}>
+        <DialogContent className="glass border-pink-200 sm:max-w-md">
+          <DialogHeader><DialogTitle className="text-pink-700">Manage Sections</DialogTitle></DialogHeader>
+          <ScrollArea className="max-h-[60vh] py-4">
+            <div className="space-y-3">
+              {dbCategories.length === 0 ? (
+                <p className="text-center text-pink-300 py-10 uppercase text-xs font-bold">No custom sections found</p>
+              ) : (
+                dbCategories.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-pink-50">
+                    <span className="font-bold text-pink-900">{cat.name}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="text-pink-300 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
