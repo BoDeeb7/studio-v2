@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -15,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Loader2, X } from "lucide-react";
-import { MakeupService } from './ServiceCard';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFirebase } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
@@ -68,7 +68,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
 
   const handleSubmit = async () => {
     if (!name || tempImages.length === 0) {
-      toast({ variant: "destructive", title: "Missing Data", description: "Please add a name and at least one image." });
+      toast({ variant: "destructive", title: "بيانات ناقصة", description: "يرجى إضافة اسم وصورة واحدة على الأقل." });
       return;
     }
     
@@ -77,33 +77,32 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
     try {
       const uploadedUrls: string[] = [];
 
-      // Phase 1: Upload Files to Storage (Atomic)
+      // رفع الصور للسحاب أولاً لضمان الديمومة
       for (let i = 0; i < tempImages.length; i++) {
         const item = tempImages[i];
         const storagePath = `products/${Date.now()}_${i}_${item.file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
         const storageRef = ref(storage, storagePath);
         
-        // Upload binary (Never Base64)
         const snapshot = await uploadBytes(storageRef, item.file);
         const downloadUrl = await getDownloadURL(snapshot.ref);
         uploadedUrls.push(downloadUrl);
       }
 
-      // Phase 2: Save metadata to Firestore only after all uploads succeed
+      // حفظ البيانات في Firestore مع رابط الصور السحابي
       const productData = {
         name: name.trim(),
         price: Number(price),
         description: description.trim(),
         imageUrls: uploadedUrls,
         categoryId: category,
-        createdAt: serverTimestamp() // Official Firebase time
+        createdAt: serverTimestamp() // توقيت السيرفر الرسمي للمزامنة اللحظية
       };
 
       await addDoc(collection(firestore, 'products'), productData);
       
-      toast({ title: "Published Successfully", description: `${name} is now live for all customers.` });
+      toast({ title: "تم النشر بنجاح", description: "المنتج متاح الآن لجميع الزبائن." });
       
-      // Cleanup & Close
+      // تنظيف وإغلاق
       setName("");
       setPrice("45");
       setDescription("");
@@ -111,11 +110,11 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
       setTempImages([]);
       setIsOpen(false);
     } catch (e: any) {
-      console.error("CRITICAL PERSISTENCE ERROR:", e);
+      console.error("خطأ في الحفظ:", e);
       toast({ 
         variant: "destructive", 
-        title: "Save Failed", 
-        description: "Firestore rejected the data. Check permissions or image sizes."
+        title: "فشل الحفظ", 
+        description: "تعذر الاتصال بالسيرفر، يرجى المحاولة لاحقاً."
       });
     } finally {
       setLoading(false);
@@ -126,21 +125,21 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-full bg-white/60 border-pink-200 text-[10px] uppercase tracking-widest h-12 px-8 text-pink-700 hover:bg-white">
-          <Plus className="w-4 h-4 mr-2" /> Manual Add
+          <Plus className="w-4 h-4 mr-2" /> إضافة منتج
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] glass border-pink-200 p-0 overflow-hidden flex flex-col max-h-[90vh]">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="font-display text-xl uppercase text-pink-700">Add New Product</DialogTitle>
+          <DialogTitle className="font-display text-xl uppercase text-pink-700">منتج جديد</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            Images are saved in cloud storage for permanent access.
+            يتم رفع الصور للسحاب لضمان ظهورها عند الجميع.
           </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="flex-grow overflow-y-auto px-6 py-2">
           <div className="grid gap-4 py-4">
             <div className="space-y-4">
-              <Label className="text-pink-600 font-bold text-xs uppercase">Product Images</Label>
+              <Label className="text-pink-600 font-bold text-xs uppercase">صور المنتج</Label>
               <div className="grid grid-cols-3 gap-2">
                 {tempImages.map((img, idx) => (
                   <div key={idx} className="aspect-square relative rounded-xl overflow-hidden border border-pink-100">
@@ -161,17 +160,17 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="name" className="text-pink-600 font-bold text-xs uppercase">Product Name</Label>
-              <Input id="name" placeholder="e.g. Silk Foundation" className="bg-white/60 border-pink-100 rounded-xl" value={name} onChange={(e) => setName(e.target.value)} />
+              <Label htmlFor="name" className="text-pink-600 font-bold text-xs uppercase">اسم المنتج</Label>
+              <Input id="name" placeholder="مثلاً: كريم أساس" className="bg-white/60 border-pink-100 rounded-xl" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="price" className="text-pink-600 font-bold text-xs uppercase">Price ($)</Label>
+                <Label htmlFor="price" className="text-pink-600 font-bold text-xs uppercase">السعر ($)</Label>
                 <Input id="price" type="number" className="bg-white/60 border-pink-100 rounded-xl" value={price} onChange={(e) => setPrice(e.target.value)} />
               </div>
               <div className="grid gap-2">
-                <Label className="text-pink-600 font-bold text-xs uppercase">Category</Label>
+                <Label className="text-pink-600 font-bold text-xs uppercase">القسم</Label>
                 <select className="flex h-10 w-full rounded-xl border border-pink-100 bg-white/60 px-3 py-2 text-sm text-pink-900 focus:outline-none" value={category} onChange={(e) => setCategory(e.target.value)}>
                   {categories.filter(c => c.id !== "all").map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -181,8 +180,8 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="desc" className="text-pink-600 font-bold text-xs uppercase">Description</Label>
-              <Textarea id="desc" placeholder="Describe the product details..." className="bg-white/60 border-pink-100 rounded-xl min-h-[80px]" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <Label htmlFor="desc" className="text-pink-600 font-bold text-xs uppercase">وصف المنتج</Label>
+              <Textarea id="desc" placeholder="أضف تفاصيل المنتج هنا..." className="bg-white/60 border-pink-100 rounded-xl min-h-[80px]" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
           </div>
         </ScrollArea>
@@ -190,7 +189,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogFooter className="p-6 pt-2">
           <Button onClick={handleSubmit} disabled={loading || !name || tempImages.length === 0} className="w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]">
             {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-            {loading ? "Uploading to Cloud Storage..." : "Save and Sync Globally"}
+            {loading ? "جاري الحفظ في السحاب..." : "نشر الآن"}
           </Button>
         </DialogFooter>
       </DialogContent>

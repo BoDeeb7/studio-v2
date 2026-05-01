@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Instagram, Zap, Lock, ShoppingBag, LogOut, X, Wallet, User, PlusCircle, Volume2, VolumeX, Edit2 } from 'lucide-react';
+import { ShoppingBag, Volume2, VolumeX, PlusCircle, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceCard, MakeupService } from '@/components/ServiceCard';
@@ -10,10 +11,8 @@ import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Sheet,
@@ -23,7 +22,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, firebaseConfig } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
@@ -32,7 +30,6 @@ export default function GirlsStore() {
   const { toast } = useToast();
   const db = useFirestore();
   
-  // 1. All Hooks strictly at the top level
   const [mounted, setMounted] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
   const [clickCount, setClickCount] = useState(0);
@@ -48,25 +45,28 @@ export default function GirlsStore() {
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // 2. Real-time Subscription Queries
+  // اشتراك لحظي (Real-time) للأقسام
   const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
   const { data: dbCategoriesRaw, isLoading: isCatsLoading } = useCollection(categoriesQuery);
 
+  // اشتراك لحظي (Real-time) للمنتجات
   const productsQuery = useMemoFirebase(() => query(collection(db, 'products')), [db]);
   const { data: dbProductsRaw, isLoading: isProductsLoading } = useCollection(productsQuery);
 
-  // 3. Memos for sorting and derived data
+  // ترتيب الأقسام أبجدياً
   const dbCategories = useMemo(() => {
     if (!dbCategoriesRaw) return [];
     return [...dbCategoriesRaw].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [dbCategoriesRaw]);
 
+  // ترتيب المنتجات (الأحدث أولاً) مع معالجة التحديث المتفائل
   const dbProducts = useMemo(() => {
     if (!dbProductsRaw) return [];
     return [...dbProductsRaw].sort((a: any, b: any) => {
-      const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || 0;
-      const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || 0;
-      return timeB - timeA; // Latest first
+      // إذا كان التاريخ مفقوداً (لحظة الإضافة الجديدة)، نضعه في الأعلى (Infinity)
+      const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || Date.now();
+      const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || Date.now();
+      return timeB - timeA;
     });
   }, [dbProductsRaw]);
 
@@ -85,12 +85,8 @@ export default function GirlsStore() {
     return cart.reduce((total, item) => total + ((item.service?.price || 0) * item.quantity), 0);
   }, [cart]);
 
-  // 4. Effects for UX
   useEffect(() => {
     setMounted(true);
-    if (!firebaseConfig?.apiKey) {
-      console.error("Firebase Configuration is missing! Check your environment variables.");
-    }
   }, []);
 
   useEffect(() => {
@@ -106,7 +102,6 @@ export default function GirlsStore() {
     }
   }, [clickCount]);
 
-  // 5. Action Handlers
   const toggleMusic = () => {
     if (!audioRef.current) return;
     if (audioRef.current.paused) {
@@ -153,21 +148,18 @@ export default function GirlsStore() {
     toast({ title: "Added to Bag", description: service.name });
   };
 
-  // 6. Safety Return
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
-      {/* Background Audio */}
-      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2022/01/21/audio_73144d1840.mp3" />
+      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/01/29/audio_d086f68c78.mp3" />
 
-      {/* Navigation */}
       <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-28 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
         <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-2xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">
           <span>GIRLS</span>
           <span>STORE<span className="text-[#f472b6]">.</span></span>
         </div>
-        <p className="text-[14px] md:text-[24px] font-black uppercase animate-shimmer-rays tracking-widest">POWERED BY HASSAN DEEB</p>
+        <p className="text-[14px] md:text-[24px] font-black uppercase animate-shimmer-rays tracking-widest whitespace-nowrap">POWERED BY HASSAN DEEB</p>
       </nav>
 
       <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
@@ -216,7 +208,6 @@ export default function GirlsStore() {
         )}
       </main>
 
-      {/* Bag & Music Controls */}
       <Button onClick={toggleMusic} className="fixed bottom-6 left-6 h-12 w-12 rounded-full glass text-pink-500 shadow-xl z-50">
         {isMusicPlaying ? <Volume2 /> : <VolumeX />}
       </Button>
@@ -282,7 +273,6 @@ export default function GirlsStore() {
         <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
       </footer>
 
-      {/* Admin Auth Dialog */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
         <DialogContent className="glass border-pink-200">
           <DialogHeader><DialogTitle>Admin Access</DialogTitle></DialogHeader>
@@ -300,7 +290,6 @@ export default function GirlsStore() {
         </DialogContent>
       </Dialog>
 
-      {/* New Category Dialog */}
       <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
         <DialogContent className="glass border-pink-200">
           <DialogHeader><DialogTitle>New Section</DialogTitle></DialogHeader>
