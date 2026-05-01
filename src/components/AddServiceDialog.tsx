@@ -47,6 +47,47 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
     }
   }, [isOpen, selectedCategoryId, categories]);
 
+  // وظيفة لضغط الصور قبل الرفع لضمان نجاح العملية على الهواتف
+  const compressImage = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Compression failed'));
+          }, 'image/jpeg', 0.7); // جودة 70% كافية جداً للموبايل
+        };
+      };
+      reader.onerror = (e) => reject(e);
+    });
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -68,7 +109,6 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
   };
 
   const handleSubmit = async () => {
-    // التحقق من وجود مستخدم (صلاحيات الرفع)
     if (!auth.currentUser) {
       toast({ 
         variant: "destructive", 
@@ -88,49 +128,46 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
     try {
       const uploadedUrls: string[] = [];
 
-      // 1. رفع الصور للسحاب أولاً (Binary Upload)
-      // نستخدم تسلسل الوعود لضمان اكتمال كل رفع قبل الحفظ النهائي
       for (let i = 0; i < tempImages.length; i++) {
         const item = tempImages[i];
-        // توليد اسم فريد لكل صورة
-        const storagePath = `products/${Date.now()}_${i}_${item.file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        
+        // ضغط الصورة قبل الرفع (مهم جداً للهواتف)
+        const compressedBlob = await compressImage(item.file);
+        
+        const storagePath = `products/${Date.now()}_${i}.jpg`;
         const storageRef = ref(storage, storagePath);
         
-        const snapshot = await uploadBytes(storageRef, item.file);
+        const snapshot = await uploadBytes(storageRef, compressedBlob);
         const downloadUrl = await getDownloadURL(snapshot.ref);
         uploadedUrls.push(downloadUrl);
       }
 
-      // 2. حفظ البيانات في Firestore فقط بعد التأكد من وجود روابط الصور السحابية
       const productData = {
         name: name.trim(),
         price: Number(price),
         description: description.trim(),
-        imageUrls: uploadedUrls, // روابط السحاب الدائمة
+        imageUrls: uploadedUrls,
         categoryId: category,
-        createdAt: serverTimestamp() // ضمان الترتيب اللحظي عند الجميع
+        createdAt: serverTimestamp()
       };
 
-      // استخدام Await لضمان وصول البيانات للسيرفر قبل إغلاق النافذة
-      const docRef = await addDoc(collection(firestore, 'products'), productData);
+      await addDoc(collection(firestore, 'products'), productData);
       
-      if (docRef.id) {
-        toast({ title: "تم الحفظ الدائم", description: "المنتج متاح الآن لجميع الزبائن." });
-        
-        // تنظيف وإغلاق
-        setName("");
-        setPrice("45");
-        setDescription("");
-        tempImages.forEach(img => URL.revokeObjectURL(img.preview));
-        setTempImages([]);
-        setIsOpen(false);
-      }
+      toast({ title: "تم الحفظ الدائم", description: "المنتج متاح الآن لجميع الزبائن." });
+      
+      setName("");
+      setPrice("45");
+      setDescription("");
+      tempImages.forEach(img => URL.revokeObjectURL(img.preview));
+      setTempImages([]);
+      setIsOpen(false);
+      
     } catch (e: any) {
-      console.error("CRITICAL PERSISTENCE ERROR:", e);
+      console.error("MOBILE UPLOAD ERROR:", e);
       toast({ 
         variant: "destructive", 
         title: "فشل الحفظ في السحاب", 
-        description: e.message || "تعذر الاتصال بالسيرفر، تأكد من جودة الإنترنت."
+        description: "تأكد من استقرار الإنترنت وتحديث الصفحة. الخطأ: " + (e.code || "Network error")
       });
     } finally {
       setLoading(false);
@@ -146,16 +183,16 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] glass border-pink-200 p-0 overflow-hidden flex flex-col max-h-[90vh]">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="font-display text-xl uppercase text-pink-700">منتج جديد</DialogTitle>
-          <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            يتم رفع الصور للسحاب لضمان ظهورها الدائم عند الجميع.
+          <DialogTitle className="font-display text-xl uppercase text-pink-700 text-right">منتج جديد</DialogTitle>
+          <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest text-right">
+            يتم ضغط الصور تلقائياً لضمان نجاح الرفع من الهاتف.
           </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="flex-grow overflow-y-auto px-6 py-2">
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 dir-rtl">
             <div className="space-y-4">
-              <Label className="text-pink-600 font-bold text-xs uppercase">صور المنتج</Label>
+              <Label className="text-pink-600 font-bold text-xs uppercase block text-right">صور المنتج</Label>
               <div className="grid grid-cols-3 gap-2">
                 {tempImages.map((img, idx) => (
                   <div key={idx} className="aspect-square relative rounded-xl overflow-hidden border border-pink-100">
@@ -175,12 +212,12 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
               <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={handleFileChange} />
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-2 text-right">
               <Label htmlFor="name" className="text-pink-600 font-bold text-xs uppercase">اسم المنتج</Label>
-              <Input id="name" placeholder="مثلاً: كريم أساس" className="bg-white/60 border-pink-100 rounded-xl" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input id="name" placeholder="مثلاً: كريم أساس" className="bg-white/60 border-pink-100 rounded-xl text-right" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 text-right">
               <div className="grid gap-2">
                 <Label htmlFor="price" className="text-pink-600 font-bold text-xs uppercase">السعر ($)</Label>
                 <Input id="price" type="number" className="bg-white/60 border-pink-100 rounded-xl" value={price} onChange={(e) => setPrice(e.target.value)} />
@@ -195,9 +232,9 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
               </div>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-2 text-right">
               <Label htmlFor="desc" className="text-pink-600 font-bold text-xs uppercase">وصف المنتج</Label>
-              <Textarea id="desc" placeholder="أضف تفاصيل المنتج هنا..." className="bg-white/60 border-pink-100 rounded-xl min-h-[80px]" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <Textarea id="desc" placeholder="أضف تفاصيل المنتج هنا..." className="bg-white/60 border-pink-100 rounded-xl min-h-[80px] text-right" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
           </div>
         </ScrollArea>
@@ -205,7 +242,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogFooter className="p-6 pt-2">
           <Button onClick={handleSubmit} disabled={loading || !name || tempImages.length === 0} className="w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]">
             {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-            {loading ? "جاري الرفع للسحاب..." : "نشر للمتجر الآن"}
+            {loading ? "جاري المعالجة والرفع..." : "نشر للمتجر الآن"}
           </Button>
         </DialogFooter>
       </DialogContent>
