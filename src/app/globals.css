@@ -75,9 +75,9 @@
   }
 
   @keyframes shimmer-rays {
-    0% { background-position: -200% center; text-shadow: 0 0 8px rgba(219, 39, 119, 0.2); }
-    50% { text-shadow: 0 0 15px rgba(147, 51, 234, 0.4); }
-    100% { background-position: 200% center; text-shadow: 0 0 8px rgba(219, 39, 119, 0.2); }
+    0% { background-position: -200% center; text-shadow: 0 0 5px rgba(219, 39, 119, 0.1); }
+    50% { text-shadow: 0 0 10px rgba(147, 51, 234, 0.2); }
+    100% { background-position: 200% center; text-shadow: 0 0 5px rgba(219, 39, 119, 0.1); }
   }
 
   .animate-shimmer-rays {
@@ -86,7 +86,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: shimmer-rays 3s ease-in-out infinite;
+    animation: shimmer-rays 4s ease-in-out infinite;
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -95,5 +95,10 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  
+  .luxury-signature {
+    @apply font-headline italic tracking-[0.3em] font-medium;
+    text-transform: uppercase;
   }
 }

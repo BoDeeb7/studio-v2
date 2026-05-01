@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -175,17 +174,25 @@ export default function GirlsStore() {
           <span>GIRLS</span>
           <span>STORE<span className="text-[#f472b6]">.</span></span>
         </div>
-        <p className="text-[14px] md:text-[24px] font-black uppercase animate-shimmer-rays tracking-widest whitespace-nowrap">POWERED BY HASSAN DEEB</p>
+        <div className="flex flex-col items-end">
+          <p className="luxury-signature text-[10px] md:text-[14px] animate-shimmer-rays whitespace-nowrap">POWERED BY</p>
+          <p className="luxury-signature text-[12px] md:text-[18px] animate-shimmer-rays -mt-1">HASSAN DEEB</p>
+        </div>
       </nav>
 
-      <header className="pt-16 md:pt-20 pb-8 px-4 text-center">
-        <p className="text-[18px] md:text-[32px] font-black uppercase animate-shimmer-rays mb-4">POWERED BY HASSAN DEEB</p>
-        <h1 onClick={handleAdminTrigger} className="font-display text-[60px] md:text-[140px] font-black leading-[0.85] text-[#d41c73] cursor-pointer">
+      <header className="pt-16 md:pt-24 pb-8 px-4 text-center">
+        <div className="mb-6 md:mb-10 flex flex-col items-center gap-1">
+          <div className="h-px w-12 bg-pink-200 mb-2"></div>
+          <p className="luxury-signature text-[14px] md:text-[24px] animate-shimmer-rays">POWERED BY HASSAN DEEB</p>
+          <div className="h-px w-12 bg-pink-200 mt-2"></div>
+        </div>
+        
+        <h1 onClick={handleAdminTrigger} className="font-display text-[65px] md:text-[150px] font-black leading-[0.85] text-[#d41c73] cursor-pointer mb-10">
           <span className="block">GIRLS</span>
           <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
         </h1>
 
-        <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-8">
+        <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-4">
           {categoriesList.map((cat) => (
             <button key={cat.id} onClick={() => setSelectedCategoryId(cat.id)} className={cn("whitespace-nowrap px-6 py-2 rounded-full text-[10px] uppercase font-semibold transition-all border", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500" : "bg-white/80 text-pink-400 border-pink-100")}>
               {cat.name}
@@ -288,23 +295,26 @@ export default function GirlsStore() {
       </Sheet>
 
       <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
-        <p className="text-pink-400 uppercase tracking-widest font-bold text-[14px] md:text-[22px] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
-        <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE • BY HASSAN DEEB</p>
+        <p className="luxury-signature text-[14px] md:text-[20px] text-pink-400 mb-8 animate-shimmer-rays">WHISH MONEY / CASH ON DELIVERY</p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE</p>
+          <p className="luxury-signature text-[10px] md:text-[14px] text-pink-400/60">ESTABLISHED BY HASSAN DEEB</p>
+        </div>
       </footer>
 
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
         <DialogContent className="glass border-pink-200">
           <DialogHeader><DialogTitle>Admin Access</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
-            <Input 
+            <input 
               type="password" 
               placeholder="••••••••" 
               value={passwordInput} 
               onChange={(e) => setPasswordInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()} 
-              className="rounded-xl border-pink-100"
+              className="w-full h-12 px-4 rounded-xl border border-pink-100 bg-white/60 focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
-            <Button onClick={handlePasswordSubmit} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold">Verify Access</Button>
+            <Button onClick={handlePasswordSubmit} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold text-white">Verify Access</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -313,13 +323,13 @@ export default function GirlsStore() {
         <DialogContent className="glass border-pink-200">
           <DialogHeader><DialogTitle>New Section</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
-            <Input 
+            <input 
               placeholder="Section Name (e.g. Face, Lips...)" 
               value={newCategoryName} 
               onChange={(e) => setNewCategoryName(e.target.value)} 
-              className="rounded-xl border-pink-100"
+              className="w-full h-12 px-4 rounded-xl border border-pink-100 bg-white/60 focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
-            <Button onClick={handleAddCategory} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold">Create Section</Button>
+            <Button onClick={handleAddCategory} className="w-full bg-pink-500 h-12 rounded-xl uppercase font-bold text-white">Create Section</Button>
           </div>
         </DialogContent>
       </Dialog>
