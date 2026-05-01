@@ -98,7 +98,7 @@
   }
   
   .luxury-signature {
-    @apply font-headline italic tracking-[0.3em] font-medium;
-    text-transform: uppercase;
+    @apply font-display font-black uppercase tracking-normal;
+    font-size: 14px;
   }
 }

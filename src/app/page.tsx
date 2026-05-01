@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, firebaseConfig, useFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useFirebase } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -68,8 +68,10 @@ export default function GirlsStore() {
   const dbProducts = useMemo(() => {
     if (!dbProductsRaw) return [];
     return [...dbProductsRaw].sort((a: any, b: any) => {
-      const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || Date.now();
-      const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || Date.now();
+      const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || 0;
+      const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || 0;
+      if (timeB === 0) return -1;
+      if (timeA === 0) return 1;
       return timeB - timeA;
     });
   }, [dbProductsRaw]);
@@ -143,7 +145,8 @@ export default function GirlsStore() {
 
   const handleDeleteCategory = async (catId: string) => {
     try {
-      await deleteDocumentNonBlocking(doc(db, 'categories', catId));
+      const { deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(db, 'categories', catId));
       if (selectedCategoryId === catId) {
         setSelectedCategoryId("all");
       }
@@ -175,16 +178,13 @@ export default function GirlsStore() {
           <span>STORE<span className="text-[#f472b6]">.</span></span>
         </div>
         <div className="flex flex-col items-end">
-          <p className="luxury-signature text-[10px] md:text-[14px] animate-shimmer-rays whitespace-nowrap">POWERED BY</p>
-          <p className="luxury-signature text-[12px] md:text-[18px] animate-shimmer-rays -mt-1">HASSAN DEEB</p>
+          <p className="luxury-signature text-[#d41c73] whitespace-nowrap">POWERED BY HASSAN DEEB</p>
         </div>
       </nav>
 
       <header className="pt-16 md:pt-24 pb-8 px-4 text-center">
-        <div className="mb-6 md:mb-10 flex flex-col items-center gap-1">
-          <div className="h-px w-12 bg-pink-200 mb-2"></div>
-          <p className="luxury-signature text-[14px] md:text-[24px] animate-shimmer-rays">POWERED BY HASSAN DEEB</p>
-          <div className="h-px w-12 bg-pink-200 mt-2"></div>
+        <div className="mb-4 md:mb-6 flex flex-col items-center">
+          <p className="luxury-signature text-[#d41c73] md:text-[20px]">POWERED BY HASSAN DEEB</p>
         </div>
         
         <h1 onClick={handleAdminTrigger} className="font-display text-[65px] md:text-[150px] font-black leading-[0.85] text-[#d41c73] cursor-pointer mb-10">
@@ -225,8 +225,14 @@ export default function GirlsStore() {
                 key={service.id} 
                 service={service} 
                 isSupervisor={isSupervisor} 
-                onUpdate={(u) => updateDocumentNonBlocking(doc(db, 'products', u.id), u)} 
-                onDelete={(id) => deleteDocumentNonBlocking(doc(db, 'products', id))} 
+                onUpdate={(u) => {
+                   const { doc, updateDoc } = require('firebase/firestore');
+                   updateDoc(doc(db, 'products', u.id), u);
+                }} 
+                onDelete={async (id) => {
+                   const { doc, deleteDoc } = await import('firebase/firestore');
+                   await deleteDoc(doc(db, 'products', id));
+                }} 
                 onAddToCart={() => addToCart(service)} 
               />
             ))}
@@ -295,10 +301,10 @@ export default function GirlsStore() {
       </Sheet>
 
       <footer className="py-20 text-center border-t border-pink-100 bg-white/30">
-        <p className="luxury-signature text-[14px] md:text-[20px] text-pink-400 mb-8 animate-shimmer-rays">WHISH MONEY / CASH ON DELIVERY</p>
+        <p className="luxury-signature text-[#d41c73] mb-8">WHISH MONEY / CASH ON DELIVERY</p>
         <div className="flex flex-col items-center gap-2">
           <p className="text-[12px] md:text-[18px] font-black text-pink-900 px-4 whitespace-nowrap tracking-tight">© 2026 GIRLS STORE</p>
-          <p className="luxury-signature text-[10px] md:text-[14px] text-pink-400/60">ESTABLISHED BY HASSAN DEEB</p>
+          <p className="luxury-signature text-[#d41c73]/60">ESTABLISHED BY HASSAN DEEB</p>
         </div>
       </footer>
 

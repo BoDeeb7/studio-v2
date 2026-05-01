@@ -612,10 +612,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: -1rem;
 }
 
-.-mt-1 {
-  margin-top: -.25rem;
-}
-
 .-mt-4 {
   margin-top: -1rem;
 }
@@ -1750,10 +1746,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 12px;
 }
 
-.text-\[14px\] {
-  font-size: 14px;
-}
-
 .text-\[65px\] {
   font-size: 65px;
 }
@@ -1849,6 +1841,10 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(212, 28, 115, var(--tw-text-opacity, 1));
 }
 
+.text-\[\#d41c73\]\/60 {
+  color: rgba(212, 28, 115, .6);
+}
+
 .text-\[\#f472b6\] {
   --tw-text-opacity: 1;
   color: rgba(244, 114, 182, var(--tw-text-opacity, 1));
@@ -1908,10 +1904,6 @@ h1, h2, h3, h4, h5, h6 {
 .text-pink-400 {
   --tw-text-opacity: 1;
   color: rgba(244, 114, 182, var(--tw-text-opacity, 1));
-}
-
-.text-pink-400\/60 {
-  color: rgba(244, 114, 182, .6);
 }
 
 .text-pink-400\/80 {
@@ -2290,14 +2282,6 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-.animate-shimmer-rays {
-  background: linear-gradient(90deg, #db2777, #f472b6, #ec4899, #f472b6, #db2777) 0 0 / 200%;
-  color: rgba(0, 0, 0, 0);
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: 4s ease-in-out infinite shimmer-rays;
-}
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -2308,11 +2292,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .luxury-signature {
-  letter-spacing: .3em;
   text-transform: uppercase;
-  font-family: Bodoni Moda, serif;
-  font-style: italic;
-  font-weight: 500;
+  letter-spacing: 0;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .selection\:bg-pink-100 ::selection, .selection\:bg-pink-100::selection {
@@ -3135,8 +3119,8 @@ h1, h2, h3, h4, h5, h6 {
     top: 1.5rem;
   }
 
-  .md\:mb-10 {
-    margin-bottom: 2.5rem;
+  .md\:mb-6 {
+    margin-bottom: 1.5rem;
   }
 
   .md\:block {
@@ -3262,10 +3246,6 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 12px;
   }
 
-  .md\:text-\[14px\] {
-    font-size: 14px;
-  }
-
   .md\:text-\[150px\] {
     font-size: 150px;
   }
@@ -3276,10 +3256,6 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:text-\[20px\] {
     font-size: 20px;
-  }
-
-  .md\:text-\[24px\] {
-    font-size: 24px;
   }
 
   .md\:text-lg {
