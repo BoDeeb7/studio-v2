@@ -172,8 +172,8 @@ export default function GirlsStore() {
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
       <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/01/21/audio_18c5e9f854.mp3" />
 
-      <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-28 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
-        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-2xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">
+      <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-20 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
+        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">
           <span>GIRLS</span>
           <span>STORE<span className="text-[#f472b6]">.</span></span>
         </div>
@@ -182,17 +182,21 @@ export default function GirlsStore() {
         </div>
       </nav>
 
-      <header className="pt-16 md:pt-24 pb-8 px-4 text-center">
-        <div className="mb-4 md:mb-6 flex flex-col items-center">
-          <p className="luxury-signature text-[#d41c73] md:text-[20px]">POWERED BY HASSAN DEEB</p>
+      <header className="pt-12 pb-8 px-6 max-w-6xl mx-auto w-full">
+        <div className="flex items-center justify-between">
+          <div onClick={handleAdminTrigger} className="font-display text-[45px] md:text-[60px] font-black leading-[0.85] text-[#d41c73] cursor-pointer">
+            <span className="block">GIRLS</span>
+            <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
+          </div>
+          <div className="hidden sm:block">
+            <p className="luxury-signature text-[#d41c73] text-[16px]">POWERED BY HASSAN DEEB</p>
+          </div>
         </div>
-        
-        <h1 onClick={handleAdminTrigger} className="font-display text-[65px] md:text-[150px] font-black leading-[0.85] text-[#d41c73] cursor-pointer mb-10">
-          <span className="block">GIRLS</span>
-          <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
-        </h1>
+        <div className="sm:hidden mt-2">
+           <p className="luxury-signature text-[#d41c73] text-[11px]">POWERED BY HASSAN DEEB</p>
+        </div>
 
-        <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start md:justify-center mt-4">
+        <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start mt-10">
           {categoriesList.map((cat) => (
             <button key={cat.id} onClick={() => setSelectedCategoryId(cat.id)} className={cn("whitespace-nowrap px-6 py-2 rounded-full text-[10px] uppercase font-semibold transition-all border", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500" : "bg-white/80 text-pink-400 border-pink-100")}>
               {cat.name}

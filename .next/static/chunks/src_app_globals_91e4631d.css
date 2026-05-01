@@ -620,10 +620,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: .25rem;
 }
 
-.mb-10 {
-  margin-bottom: 2.5rem;
-}
-
 .mb-12 {
   margin-bottom: 3rem;
 }
@@ -658,6 +654,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .mt-1 {
   margin-top: .25rem;
+}
+
+.mt-10 {
+  margin-top: 2.5rem;
 }
 
 .mt-2 {
@@ -1688,8 +1688,8 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: .25rem;
 }
 
-.pt-16 {
-  padding-top: 4rem;
+.pt-12 {
+  padding-top: 3rem;
 }
 
 .pt-2 {
@@ -1742,12 +1742,20 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 10px;
 }
 
+.text-\[11px\] {
+  font-size: 11px;
+}
+
 .text-\[12px\] {
   font-size: 12px;
 }
 
-.text-\[65px\] {
-  font-size: 65px;
+.text-\[16px\] {
+  font-size: 16px;
+}
+
+.text-\[45px\] {
+  font-size: 45px;
 }
 
 .text-\[9px\] {
@@ -2293,10 +2301,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .luxury-signature {
   text-transform: uppercase;
-  letter-spacing: 0;
+  letter-spacing: -.025em;
   font-family: Montserrat, sans-serif;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .selection\:bg-pink-100 ::selection, .selection\:bg-pink-100::selection {
@@ -3051,8 +3059,16 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
   }
 
+  .sm\:block {
+    display: block;
+  }
+
   .sm\:flex {
     display: flex;
+  }
+
+  .sm\:hidden {
+    display: none;
   }
 
   .sm\:max-w-\[425px\] {
@@ -3119,10 +3135,6 @@ h1, h2, h3, h4, h5, h6 {
     top: 1.5rem;
   }
 
-  .md\:mb-6 {
-    margin-bottom: 1.5rem;
-  }
-
   .md\:block {
     display: block;
   }
@@ -3151,10 +3163,6 @@ h1, h2, h3, h4, h5, h6 {
     height: 5rem;
   }
 
-  .md\:h-28 {
-    height: 7rem;
-  }
-
   .md\:h-auto {
     height: auto;
   }
@@ -3173,10 +3181,6 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:flex-row {
     flex-direction: row;
-  }
-
-  .md\:justify-center {
-    justify-content: center;
   }
 
   .md\:gap-10 {
@@ -3223,10 +3227,6 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: .5rem;
   }
 
-  .md\:pt-24 {
-    padding-top: 6rem;
-  }
-
   .md\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -3246,16 +3246,12 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 12px;
   }
 
-  .md\:text-\[150px\] {
-    font-size: 150px;
-  }
-
   .md\:text-\[18px\] {
     font-size: 18px;
   }
 
-  .md\:text-\[20px\] {
-    font-size: 20px;
+  .md\:text-\[60px\] {
+    font-size: 60px;
   }
 
   .md\:text-lg {
