@@ -23,12 +23,14 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, firebaseConfig } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, firebaseConfig, useFirebase } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
+import { signInAnonymously } from 'firebase/auth';
 
 export default function GirlsStore() {
   const { toast } = useToast();
   const db = useFirestore();
+  const { auth } = useFirebase();
   
   const [mounted, setMounted] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
@@ -44,6 +46,19 @@ export default function GirlsStore() {
   const [passwordInput, setPasswordInput] = useState("");
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // التأكد من تهيئة Firebase والدخول المجهول للسماح بالكتابة في السحاب
+  useEffect(() => {
+    setMounted(true);
+    if (!firebaseConfig.apiKey) {
+      console.error("CRITICAL: Firebase configuration is missing or invalid.");
+    }
+    
+    // تسجيل الدخول مجهولاً لضمان صلاحيات الرفع
+    if (auth && !auth.currentUser) {
+      signInAnonymously(auth).catch(err => console.error("Auth Error:", err));
+    }
+  }, [auth]);
 
   // اشتراك لحظي (Real-time) للأقسام
   const categoriesQuery = useMemoFirebase(() => query(collection(db, 'categories')), [db]);
@@ -63,7 +78,6 @@ export default function GirlsStore() {
   const dbProducts = useMemo(() => {
     if (!dbProductsRaw) return [];
     return [...dbProductsRaw].sort((a: any, b: any) => {
-      // إذا كان التاريخ مفقوداً (لحظة الإضافة الجديدة)، نضعه في الأعلى (Infinity)
       const timeA = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || Date.now();
       const timeB = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || Date.now();
       return timeB - timeA;
@@ -75,19 +89,15 @@ export default function GirlsStore() {
     return [...base, ...dbCategories];
   }, [dbCategories]);
 
+  const cartTotal = useMemo(() => {
+    return cart.reduce((total, item) => total + ((item.service?.price || 0) * item.quantity), 0);
+  }, [cart]);
+
   const filteredServices = useMemo(() => {
     if (!dbProducts) return [];
     if (selectedCategoryId === "all") return dbProducts as MakeupService[];
     return (dbProducts as MakeupService[]).filter(s => s.categoryId === selectedCategoryId);
   }, [dbProducts, selectedCategoryId]);
-
-  const cartTotal = useMemo(() => {
-    return cart.reduce((total, item) => total + ((item.service?.price || 0) * item.quantity), 0);
-  }, [cart]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
@@ -136,7 +146,9 @@ export default function GirlsStore() {
       setNewCategoryName("");
       setIsAddCategoryOpen(false);
       toast({ title: "New Section Added" });
-    } catch (e) {}
+    } catch (e) {
+      console.error("Category Add Error:", e);
+    }
   };
 
   const addToCart = (service: MakeupService) => {
@@ -152,7 +164,7 @@ export default function GirlsStore() {
 
   return (
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
-      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/01/29/audio_d086f68c78.mp3" />
+      <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/02/10/audio_51a44e532b.mp3" />
 
       <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-28 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
         <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-2xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">

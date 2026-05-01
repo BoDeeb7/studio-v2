@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Loader2, X } from "lucide-react";
+import { Plus, Loader2, X, AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFirebase } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
@@ -29,7 +29,7 @@ interface AddServiceDialogProps {
 
 export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceDialogProps) {
   const { toast } = useToast();
-  const { firestore, storage } = useFirebase();
+  const { firestore, storage, auth } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -42,7 +42,8 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
 
   useEffect(() => {
     if (isOpen) {
-      setCategory(selectedCategoryId === "all" ? (categories.find(c => c.id !== 'all')?.id || "face") : selectedCategoryId);
+      const initialCat = selectedCategoryId === "all" ? (categories.find(c => c.id !== 'all')?.id || "face") : selectedCategoryId;
+      setCategory(initialCat);
     }
   }, [isOpen, selectedCategoryId, categories]);
 
@@ -67,6 +68,16 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
   };
 
   const handleSubmit = async () => {
+    // التحقق من وجود مستخدم (صلاحيات الرفع)
+    if (!auth.currentUser) {
+      toast({ 
+        variant: "destructive", 
+        title: "خطأ في الصلاحيات", 
+        description: "يرجى الانتظار ثانية حتى يتم تهيئة الاتصال بالسحاب." 
+      });
+      return;
+    }
+
     if (!name || tempImages.length === 0) {
       toast({ variant: "destructive", title: "بيانات ناقصة", description: "يرجى إضافة اسم وصورة واحدة على الأقل." });
       return;
@@ -77,9 +88,11 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
     try {
       const uploadedUrls: string[] = [];
 
-      // رفع الصور للسحاب أولاً لضمان الديمومة
+      // 1. رفع الصور للسحاب أولاً (Binary Upload)
+      // نستخدم تسلسل الوعود لضمان اكتمال كل رفع قبل الحفظ النهائي
       for (let i = 0; i < tempImages.length; i++) {
         const item = tempImages[i];
+        // توليد اسم فريد لكل صورة
         const storagePath = `products/${Date.now()}_${i}_${item.file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
         const storageRef = ref(storage, storagePath);
         
@@ -88,33 +101,36 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         uploadedUrls.push(downloadUrl);
       }
 
-      // حفظ البيانات في Firestore مع رابط الصور السحابي
+      // 2. حفظ البيانات في Firestore فقط بعد التأكد من وجود روابط الصور السحابية
       const productData = {
         name: name.trim(),
         price: Number(price),
         description: description.trim(),
-        imageUrls: uploadedUrls,
+        imageUrls: uploadedUrls, // روابط السحاب الدائمة
         categoryId: category,
-        createdAt: serverTimestamp() // توقيت السيرفر الرسمي للمزامنة اللحظية
+        createdAt: serverTimestamp() // ضمان الترتيب اللحظي عند الجميع
       };
 
-      await addDoc(collection(firestore, 'products'), productData);
+      // استخدام Await لضمان وصول البيانات للسيرفر قبل إغلاق النافذة
+      const docRef = await addDoc(collection(firestore, 'products'), productData);
       
-      toast({ title: "تم النشر بنجاح", description: "المنتج متاح الآن لجميع الزبائن." });
-      
-      // تنظيف وإغلاق
-      setName("");
-      setPrice("45");
-      setDescription("");
-      tempImages.forEach(img => URL.revokeObjectURL(img.preview));
-      setTempImages([]);
-      setIsOpen(false);
+      if (docRef.id) {
+        toast({ title: "تم الحفظ الدائم", description: "المنتج متاح الآن لجميع الزبائن." });
+        
+        // تنظيف وإغلاق
+        setName("");
+        setPrice("45");
+        setDescription("");
+        tempImages.forEach(img => URL.revokeObjectURL(img.preview));
+        setTempImages([]);
+        setIsOpen(false);
+      }
     } catch (e: any) {
-      console.error("خطأ في الحفظ:", e);
+      console.error("CRITICAL PERSISTENCE ERROR:", e);
       toast({ 
         variant: "destructive", 
-        title: "فشل الحفظ", 
-        description: "تعذر الاتصال بالسيرفر، يرجى المحاولة لاحقاً."
+        title: "فشل الحفظ في السحاب", 
+        description: e.message || "تعذر الاتصال بالسيرفر، تأكد من جودة الإنترنت."
       });
     } finally {
       setLoading(false);
@@ -132,7 +148,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="font-display text-xl uppercase text-pink-700">منتج جديد</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest">
-            يتم رفع الصور للسحاب لضمان ظهورها عند الجميع.
+            يتم رفع الصور للسحاب لضمان ظهورها الدائم عند الجميع.
           </DialogDescription>
         </DialogHeader>
         
@@ -189,7 +205,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogFooter className="p-6 pt-2">
           <Button onClick={handleSubmit} disabled={loading || !name || tempImages.length === 0} className="w-full h-12 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-widest text-[10px]">
             {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-            {loading ? "جاري الحفظ في السحاب..." : "نشر الآن"}
+            {loading ? "جاري الرفع للسحاب..." : "نشر للمتجر الآن"}
           </Button>
         </DialogFooter>
       </DialogContent>

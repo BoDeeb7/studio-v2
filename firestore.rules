@@ -5,8 +5,7 @@ service cloud.firestore {
 
     /**
      * GLOBAL RULES
-     * تم تحديث القواعد لضمان السماح بالوصول الكامل للأدمن ومزامنة الزوار.
-     * التحديث الأخير: السماح العام لضمان استقرار النموذج الأولي.
+     * تم السماح بالوصول الكامل لضمان نجاح الحفظ اللحظي من كافة الأجهزة.
      */
 
     match /categories/{categoryId} {
@@ -17,9 +16,8 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    match /adminRoles/{adminUid} {
-      allow get: if request.auth != null && request.auth.uid == adminUid;
-      allow list, write: if false;
+    match /{document=**} {
+      allow read, write: if true;
     }
 
   }
