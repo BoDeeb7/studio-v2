@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -21,7 +22,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, useFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, useFirebase, firebaseConfig } from '@/firebase';
 import { collection, query, doc } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -171,30 +172,27 @@ export default function GirlsStore() {
     <div className="min-h-screen flex flex-col pb-20 overflow-x-hidden selection:bg-pink-100">
       <audio ref={audioRef} loop preload="auto" src="https://cdn.pixabay.com/audio/2025/01/21/audio_18c5e9f854.mp3" />
 
-      <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-20 flex items-center justify-between transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
-        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-xl font-black text-[#d41c73] cursor-pointer flex flex-col leading-[0.8]">
-          <span>GIRLS</span>
-          <span>STORE<span className="text-[#f472b6]">.</span></span>
-        </div>
-        <div className="flex flex-col items-end">
-          <p className="luxury-signature text-[#d41c73] whitespace-nowrap">POWERED BY HASSAN DEEB</p>
+      <nav className={cn("fixed top-0 left-0 right-0 z-[100] px-4 md:px-6 h-16 md:h-20 flex flex-col items-center justify-center transition-all duration-500", "glass border-b border-pink-200/30", isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full")}>
+        <p className="font-display font-bold text-[#d41c73] text-[8px] md:text-[10px] uppercase tracking-tighter mb-0.5">
+          POWERED BY HASSAN DEEB
+        </p>
+        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-display text-lg md:text-xl font-black text-[#d41c73] cursor-pointer flex flex-col items-center leading-[0.8]">
+          <span>GIRLS STORE<span className="text-[#f472b6]">.</span></span>
         </div>
       </nav>
 
-      <header className="pt-12 pb-8 px-6 max-w-6xl mx-auto w-full">
-        <div className="flex items-center gap-4">
-          <div onClick={handleAdminTrigger} className="font-display text-[45px] md:text-[60px] font-black leading-[0.85] text-[#d41c73] cursor-pointer">
-            <span className="block">GIRLS</span>
-            <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
-          </div>
-          <div className="pt-4 md:pt-6">
-            <p className="font-display font-bold text-[#d41c73] text-[14px] md:text-[22px] uppercase tracking-tighter">
-              POWERED BY HASSAN DEEB
-            </p>
-          </div>
+      <header className="pt-12 pb-8 px-6 max-w-6xl mx-auto w-full flex flex-col items-center text-center">
+        <div className="mb-2">
+          <p className="font-display font-bold text-[#d41c73] text-[14px] md:text-[22px] uppercase tracking-tighter">
+            POWERED BY HASSAN DEEB
+          </p>
+        </div>
+        <div onClick={handleAdminTrigger} className="font-display text-[45px] md:text-[60px] font-black leading-[0.85] text-[#d41c73] cursor-pointer">
+          <span className="block">GIRLS</span>
+          <span className="block">STORE<span className="text-[#f472b6]">.</span></span>
         </div>
 
-        <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-start mt-10">
+        <nav className="flex overflow-x-auto pb-4 no-scrollbar gap-2 px-2 justify-center mt-10 w-full">
           {categoriesList.map((cat) => (
             <button key={cat.id} onClick={() => setSelectedCategoryId(cat.id)} className={cn("whitespace-nowrap px-6 py-2 rounded-full text-[10px] uppercase font-semibold transition-all border", selectedCategoryId === cat.id ? "bg-pink-500 text-white border-pink-500" : "bg-white/80 text-pink-400 border-pink-100")}>
               {cat.name}
