@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -15,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Loader2, X, AlertCircle } from "lucide-react";
+import { Plus, Loader2, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFirebase } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
@@ -47,44 +46,41 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
     }
   }, [isOpen, selectedCategoryId, categories]);
 
-  // وظيفة لضغط الصور قبل الرفع لضمان نجاح العملية على الهواتف
+  // وظيفة محسنة لضغط الصور لتعمل بكفاءة على الآيفون
   const compressImage = async (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
-          let width = img.width;
-          let height = img.height;
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1000; // تقليل الحجم قليلاً لزيادة السرعة
+        const MAX_HEIGHT = 1000;
+        let width = img.width;
+        let height = img.height;
 
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
           }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Compression failed'));
-          }, 'image/jpeg', 0.7); // جودة 70% كافية جداً للموبايل
-        };
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Compression failed'));
+        }, 'image/jpeg', 0.6); // تقليل الجودة لـ 60% لضمان نجاح الرفع من الهاتف
       };
-      reader.onerror = (e) => reject(e);
+      img.onerror = () => reject(new Error('Image load failed'));
     });
   };
 
@@ -110,11 +106,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
 
   const handleSubmit = async () => {
     if (!auth.currentUser) {
-      toast({ 
-        variant: "destructive", 
-        title: "خطأ في الصلاحيات", 
-        description: "يرجى الانتظار ثانية حتى يتم تهيئة الاتصال بالسحاب." 
-      });
+      toast({ variant: "destructive", title: "صلاحيات محدودة", description: "يرجى الانتظار للحظة حتى يكتمل الاتصال بالسحاب." });
       return;
     }
 
@@ -130,13 +122,12 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
 
       for (let i = 0; i < tempImages.length; i++) {
         const item = tempImages[i];
-        
-        // ضغط الصورة قبل الرفع (مهم جداً للهواتف)
         const compressedBlob = await compressImage(item.file);
         
         const storagePath = `products/${Date.now()}_${i}.jpg`;
         const storageRef = ref(storage, storagePath);
         
+        // محاولة الرفع مع معالجة الأخطاء
         const snapshot = await uploadBytes(storageRef, compressedBlob);
         const downloadUrl = await getDownloadURL(snapshot.ref);
         uploadedUrls.push(downloadUrl);
@@ -153,8 +144,9 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
 
       await addDoc(collection(firestore, 'products'), productData);
       
-      toast({ title: "تم الحفظ الدائم", description: "المنتج متاح الآن لجميع الزبائن." });
+      toast({ title: "تم الحفظ بنجاح", description: "المنتج متاح الآن للجميع." });
       
+      // إعادة ضبط النموذج
       setName("");
       setPrice("45");
       setDescription("");
@@ -163,11 +155,11 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
       setIsOpen(false);
       
     } catch (e: any) {
-      console.error("MOBILE UPLOAD ERROR:", e);
+      console.error("UPLOAD ERROR:", e);
       toast({ 
         variant: "destructive", 
-        title: "فشل الحفظ في السحاب", 
-        description: "تأكد من استقرار الإنترنت وتحديث الصفحة. الخطأ: " + (e.code || "Network error")
+        title: "فشل في الحفظ", 
+        description: "تأكد من قوة الإنترنت. قد يكون حجم الصور كبيراً جداً." 
       });
     } finally {
       setLoading(false);
@@ -185,7 +177,7 @@ export function AddServiceDialog({ categories, selectedCategoryId }: AddServiceD
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="font-display text-xl uppercase text-pink-700 text-right">منتج جديد</DialogTitle>
           <DialogDescription className="text-pink-500/70 text-[10px] uppercase tracking-widest text-right">
-            يتم ضغط الصور تلقائياً لضمان نجاح الرفع من الهاتف.
+            سيتم ضغط الصور تلقائياً لضمان نجاح الرفع من الهاتف.
           </DialogDescription>
         </DialogHeader>
         

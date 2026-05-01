@@ -6,24 +6,21 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// وظيفة تهيئة Firebase مع ضمان تحميل كافة الإعدادات بما فيها Storage Bucket
+// وظيفة تهيئة Firebase مع ضمان تحميل كافة الإعدادات بشكل صريح لتجنب التعليق
 export function initializeFirebase() {
   const apps = getApps();
-  if (apps.length > 0) {
-    return getSdks(apps[0]);
-  }
-
-  // نستخدم الإعدادات الصريحة دائماً لضمان وجود storageBucket وتجنب الأخطاء في البيئات المختلفة
-  const firebaseApp = initializeApp(firebaseConfig);
+  const firebaseApp = apps.length > 0 ? apps[0] : initializeApp(firebaseConfig);
   return getSdks(firebaseApp);
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  // نمرر رابط الـ bucket بشكل صريح لضمان عدم حدوث خطأ storage/no-default-bucket
+  const bucketUrl = `gs://${firebaseConfig.storageBucket}`;
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp)
+    storage: getStorage(firebaseApp, bucketUrl)
   };
 }
 
